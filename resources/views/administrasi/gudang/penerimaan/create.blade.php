@@ -292,7 +292,7 @@
                                             <div class="input-group-prepend">
                                                 <span class="input-group-text">Rp. </span>
                                             </div>
-                                            <input id="sisa_alokasi" type="text" readonly
+                                            <input id="sisa_alokasi" type="text"
                                                 class="form-control thousand-style  @error('sisa_alokasi') is-invalid @enderror" name="sisa_alokasi"
                                                 value="{{ old("sisa_alokasi") }}" autocomplete="name"
                                                 autofocus>
@@ -398,7 +398,7 @@
                                     <div class="col-md-6">
                                         <textarea id="keterangan" class="form-control  @error('keterangan') is-invalid @enderror" name="keterangan" type="text" cols="30" rows="10">{{ old("keterangan") }}</textarea>
 
-                                        @error('jumlah')
+                                        @error('keterangan')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
                                         </span>

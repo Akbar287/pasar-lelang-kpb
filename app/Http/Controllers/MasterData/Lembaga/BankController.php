@@ -5,7 +5,10 @@ namespace App\Http\Controllers\MasterData\Lembaga;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BankRequest;
 use App\Models\Bank;
+use App\Models\Userlogin;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Yajra\DataTables\DataTables;
 
 class BankController extends Controller
@@ -75,5 +78,15 @@ class BankController extends Controller
             'kode_bank' => request('kode_bank'),
             'nama_bank' => request('nama_bank'),
         ];
+    }
+
+    public function api_get_bank(Request $request)
+    {
+        $data = Bank::get();
+        return response()->json([
+            'data' => $data,
+            'status' => 'success',
+            'message' => 'data bank has been catched'
+        ], 200);
     }
 }

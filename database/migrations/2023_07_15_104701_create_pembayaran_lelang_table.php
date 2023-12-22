@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('pembayaran_lelang_id')->primary();
             $table->uuid('status_penyelesaian_id');
             $table->uuid('approval_lelang_id');
+            $table->string('nomor_lelang')->nullable();
             $table->date('tanggal_pembayaran');
             $table->date('tanggal_jatuh_tempo');
             $table->text('keterangan')->nullable();

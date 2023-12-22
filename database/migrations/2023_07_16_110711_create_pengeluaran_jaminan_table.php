@@ -17,6 +17,9 @@ return new class extends Migration
             $table->uuid('jenis_pengeluaran_jaminan_id');
             $table->string('kode_transaksi', 64);
             $table->date('tanggal');
+            $table->boolean('is_aktif');
+            $table->text('keterangan')->nullable();
+            $table->decimal('jumlah, 18, 2');
 
             $table->foreign('jaminan_id')->references('jaminan_id')->on('jaminan')->cascadeOnDelete();
             $table->foreign('jenis_pengeluaran_jaminan_id')->references('jenis_pengeluaran_jaminan_id')->on('jenis_pengeluaran_jaminan')->cascadeOnDelete();

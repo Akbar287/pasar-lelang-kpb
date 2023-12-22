@@ -10,7 +10,6 @@ class Admin extends Model
 {
     use HasFactory;
     public $timestamps = false;
-
     protected $table = 'admin';
     protected $primaryKey = 'admin_id';
     public $incrementing = false;
@@ -41,5 +40,10 @@ class Admin extends Model
     public function penyelenggara_pasar_lelang()
     {
         return $this->hasMany(PenyelenggaraPasarLelang::class, 'admin_id', 'admin_id');
+    }
+
+    public function blog_post()
+    {
+        return $this->hasMany(BlogPost::class, 'admin_id', 'admin_id');
     }
 }

@@ -291,6 +291,7 @@
                                 <div class="row mb-0">
                                     <div class="col-md-6 offset-md-4 d-flex align-items-end">
                                         <a type="button" href="{{ route('administrasi.kas_bank.list.index') }}" class="btn btn-primary mr-2"><i class="fas fa-arrow-left"></i> Kembali</a>
+                                        <a type="button" href="{{ route('administrasi.kas_bank.list.file.index', $keuangan->keuangan_id) }}" class="btn btn-info mr-2"><i class="fas fa-file"></i> File</a>
                                     </div>
                                 </div>
                             </div>

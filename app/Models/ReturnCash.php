@@ -25,7 +25,6 @@ class ReturnCash extends Model
 
     protected $fillable = [
         'pengeluaran_jaminan_id',
-        'jaminan_tersedia',
         'jumlah_pengembalian',
     ];
 

@@ -16,19 +16,19 @@ class OperationalPasarLelangController extends Controller
             [
                 "nama" => "Transaksi Lelang",
                 "icon" => "th",
-                "url" => route('operational.lelang.transaksi'),
+                "url" => route('operational.lelang.transaksi.index'),
                 "color" => "primary"
             ],
             [
                 "nama" => "Verifikasi Transaksi Lelang",
                 "icon" => "filter",
-                "url" => route('operational.lelang.verifikasi'),
+                "url" => route('operational.lelang.verifikasi.index'),
                 "color" => "secondary"
             ],
             [
                 "nama" => "Transaksi Lelang Selesai",
                 "icon" => "tint",
-                "url" => route('operational.lelang.selesai'),
+                "url" => route('operational.lelang.list.index'),
                 "color" => "success"
             ]
         ];

@@ -7,7 +7,13 @@ use App\Models\Admin;
 use App\Models\LelangSesiOnline;
 use App\Models\PesertaLelang;
 use App\Models\StatusMember;
+use App\Models\Userlogin;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Yajra\DataTables\DataTables;
 
 class AnggotaEventLelangOnlineController extends Controller
@@ -45,7 +51,8 @@ class AnggotaEventLelangOnlineController extends Controller
     public function create(LelangSesiOnline $event)
     {
         $members = StatusMember::where('nama_status', 'Aktif')->first()->member()->whereNotIn('member_id', Admin::select('member.member_id')->join('member', 'member.member_id', 'admin.member_id')->get()->toArray())->whereNotIn('member_id', $event->master_sesi_lelang()->first()->peserta_lelang()->select('member.member_id')->join('informasi_akun', 'peserta_lelang.informasi_akun_id', 'informasi_akun.informasi_akun_id')->join('member', 'member.informasi_akun_id', 'informasi_akun.informasi_akun_id')->get()->toArray())->get();
-        return view('lelang_online/event_anggota/create', compact('event', 'members'));
+        $rekomendNomor = $this->rekomendasiKodeAnggota($event);
+        return view('lelang_online/event_anggota/create', compact('event', 'members', 'rekomendNomor'));
     }
 
     /**
@@ -122,5 +129,81 @@ class AnggotaEventLelangOnlineController extends Controller
             'informasi_akun_id' => request('informasi_akun_id'),
             'kode_peserta_lelang' => request('kode_peserta_lelang'),
         ];
+    }
+
+    public function rekomendasiKodeAnggota($lelangSesiOnline)
+    {
+        $temp = $lelangSesiOnline->master_sesi_lelang()->first()->peserta_lelang()->where('tanggal', $lelangSesiOnline->tanggal)->orderBy('kode_peserta_lelang', 'desc')->first();
+
+        return is_null($temp) ? 1 : intval($temp->kode_peserta_lelang) + 1;
+    }
+
+    public function joinEventLelangOnline(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'lelang_sesi_online_id' => ['required'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'data' => [],
+                'status' => 'error',
+                'message' => $validator->errors()
+            ], 400);
+            exit;
+        } else {
+            $el = LelangSesiOnline::where('lelang_sesi_online_id', $request->lelang_sesi_online_id)->first();
+
+            if (is_null($el)) {
+                return response()->json([
+                    'data' => [],
+                    'status' => 'error',
+                    'message' => 'UUID lelang sesi online wrong'
+                ], 400);
+                exit;
+            }
+            try {
+                $token = JWTAuth::getToken();
+                $apy = JWTAuth::getPayload($token)->toArray();
+
+                $user = Userlogin::where('userlogin_id', $apy['sub'])->first();
+                $data = $el->master_sesi_lelang()->first()->peserta_lelang()->where('tanggal', $el->tanggal)->where('informasi_akun_id', $user->informasi_akun_id)->first();
+
+                if (is_null($data)) {
+                    $data =  $el->master_sesi_lelang()->first()->peserta_lelang()->create([
+                        'informasi_akun_id' => $user->informasi_akun_id,
+                        'tanggal' => $el->tanggal,
+                        'kode_peserta_lelang' => $this->rekomendasiKodeAnggota($el)
+                    ]);
+                }
+
+                return response()->json([
+                    'data' => $data,
+                    'message' => 'kode anggota sesi lelang online sudah digenerate',
+                    'status' => 'success'
+                ], 200);
+            } catch (TokenExpiredException $e) {
+                return response()->json([
+                    'data' => [],
+                    'message' => 'token_expired: ' . $e->getMessage(),
+                    'status' => 'error'
+                ], 500);
+                exit;
+            } catch (TokenInvalidException $e) {
+                return response()->json([
+                    'data' => [],
+                    'message' => 'token_invalid: ' . $e->getMessage(),
+                    'status' => 'error'
+                ], 500);
+                exit;
+            } catch (JWTException $e) {
+                return response()->json([
+                    'data' => [],
+                    'message' => 'token_absent: ' . $e->getMessage(),
+                    'status' => 'error'
+                ], 500);
+                exit;
+            }
+        }
     }
 }

@@ -85,7 +85,7 @@
                                     <div class="col-md-6">
                                             <input id="tanggal_lelang" type="date"
                                                 class="form-control @error('tanggal_lelang') is-invalid @enderror" name="tanggal_lelang"
-                                                value="{{ old("tanggal_lelang") }}">
+                                                value="{{ is_null(old("tanggal_lelang")) ? date('Y-m-d') : old("tanggal_lelang") }}">
                                         
                                         @error('tanggal_lelang')
                                         <span class="invalid-feedback" role="alert">

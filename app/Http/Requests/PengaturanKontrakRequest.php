@@ -27,7 +27,6 @@ class PengaturanKontrakRequest extends FormRequest
             'komoditas_id' => ['required'],
             'informasi_akun_id' => ['required'],
             'jenis_perdagangan_id' => ['required'],
-            'simbol' => ['required'],
             'minimum_transaksi' => ['required'],
             'maksimum_transaksi' => ['required'],
             'fluktuasi_harga_harian' => ['required'],

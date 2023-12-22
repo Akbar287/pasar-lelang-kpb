@@ -24,6 +24,7 @@ class OperatorPasarLelang extends Model
     }
     protected $fillable = [
         'offline_profile_id',
+        'userlogin_id',
         'user_id',
         'nama_lengkap',
         'password',
@@ -33,5 +34,10 @@ class OperatorPasarLelang extends Model
     public function offline_profile()
     {
         return $this->belongsTo(OfflineProfile::class, 'offline_profile_id', 'offline_profile_id');
+    }
+
+    public function userlogin()
+    {
+        return $this->belongsTo(Userlogin::class, 'userlogin_id', 'userlogin_id');
     }
 }

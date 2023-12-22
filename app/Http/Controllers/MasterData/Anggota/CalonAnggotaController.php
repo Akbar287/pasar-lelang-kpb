@@ -26,6 +26,10 @@ use Yajra\DataTables\DataTables;
 
 class CalonAnggotaController extends Controller
 {
+    public function __construct()
+    {
+        date_default_timezone_set('Asia/Jakarta');
+    }
     /**
      * Display a listing of the resource.
      */
@@ -37,22 +41,22 @@ class CalonAnggotaController extends Controller
                 ->addIndexColumn()
                 ->addColumn('nama', function ($row) {
                     if (isset($row->lembaga_id)) {
-                        $actionBtn = $row->nama_lembaga;
+                        $actionBtn = is_null($row->nama_lembaga) ? '-' : $row->nama_lembaga;
                     } else {
-                        $actionBtn = $row->ktp()->first()->nama;
+                        $actionBtn = is_null($row->ktp()->first()->nama) ? '-' : $row->ktp()->first()->nama;
                     }
                     return $actionBtn;
                 })
                 ->addColumn('member_id', function ($row) {
-                    $actionBtn = $row->informasi_akun_id;
+                    $actionBtn = is_null($row->informasi_akun_id) ? '-' : $row->informasi_akun_id;
                     return $actionBtn;
                 })
                 ->addColumn('no_hp', function ($row) {
-                    $actionBtn = $row->informasi_akun()->first()->no_hp;
+                    $actionBtn = is_null($row->informasi_akun()->first()->no_hp) ? '-' : $row->informasi_akun()->first()->no_hp;
                     return $actionBtn;
                 })
                 ->addColumn('email', function ($row) {
-                    $actionBtn = $row->informasi_akun()->first()->email;
+                    $actionBtn = is_null($row->informasi_akun()->first()->email) ? '-' : $row->informasi_akun()->first()->email;
                     return $actionBtn;
                 })
                 ->addColumn('jenis_member', function ($row) {
@@ -106,7 +110,7 @@ class CalonAnggotaController extends Controller
             "kecamatan" => ['required'],
             "desa" => ['required'],
             "alamat" => ['required'],
-            "kode_pos" => ['required'],
+            "kode_pos" => ['required', 'size:5'],
             "pekerjaan" => ['required'],
             "pendapatan_tahunan" => ['required'],
             "kekayaan_bersih" => ['required'],
@@ -133,7 +137,7 @@ class CalonAnggotaController extends Controller
                 "kecamatan_lembaga" => ['required'],
                 "desa_lembaga" => ['required'],
                 "alamat_lembaga" => ['required'],
-                "kode_pos_lembaga" => ['required'],
+                "kode_pos_lembaga" => ['required', 'size:5'],
                 "nama_bank_lembaga" => ['required'],
                 "nomor_rekening_lembaga" => ['required'],
                 "nama_pemilik_lembaga" => ['required'],
@@ -212,24 +216,26 @@ class CalonAnggotaController extends Controller
         $userlogin->is_aktif = true;
         $userlogin->save();
 
-        if (count($request->file) > 0) {
-            $keys = array_keys($request->file);
-            for ($i = 0; $i < count($request->file); $i++) {
-                $filenameWithExt = $request->file[$i]->getClientOriginalName();
-                $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
-                $extension = $request->file[$i]->getClientOriginalExtension();
-                $foto = $filename . '_' . time() . '.' . $extension;
-                $request->file[$i]->storeAs('public/dokumen_member', $foto);
+        if ($request->has('file')) {
+            if (count($request->file) > 0) {
+                $keys = array_keys($request->file);
+                for ($i = 0; $i < count($request->file); $i++) {
+                    $filenameWithExt = $request->file[$i]->getClientOriginalName();
+                    $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
+                    $extension = $request->file[$i]->getClientOriginalExtension();
+                    $foto = $filename . '_' . time() . '.' . $extension;
+                    $request->file[$i]->storeAs('public/dokumen_member', $foto);
 
-                $jenis = JenisDokumen::where('nama_jenis', $request->jenis_file[$keys[$i]])->first();
-                $dokumen = new DokumenMember();
-                $dokumen->jenis_dokumen_id = $jenis->jenis_dokumen_id;
-                $dokumen->informasi_akun_id = $informasi->informasi_akun_id;
-                $dokumen->versi_unggah = 1;
-                $dokumen->tanggal_unggah = date('Y-m-d');
-                $dokumen->nama_dokumen = $foto;
-                $dokumen->nama_file = $foto;
-                $dokumen->save();
+                    $jenis = JenisDokumen::where('nama_jenis', $request->jenis_file[$keys[$i]])->first();
+                    $dokumen = new DokumenMember();
+                    $dokumen->jenis_dokumen_id = $jenis->jenis_dokumen_id;
+                    $dokumen->informasi_akun_id = $informasi->informasi_akun_id;
+                    $dokumen->versi_unggah = 1;
+                    $dokumen->tanggal_unggah = date('Y-m-d');
+                    $dokumen->nama_dokumen = $foto;
+                    $dokumen->nama_file = $foto;
+                    $dokumen->save();
+                }
             }
         }
 
@@ -293,24 +299,28 @@ class CalonAnggotaController extends Controller
             $rekening->saldo = 0;
             $rekening->save();
 
-            if (count($request->file_lembaga) > 0) {
-                $keys = array_keys($request->file);
-                for ($i = 0; $i < count($request->file_lembaga); $i++) {
-                    $filenameWithExt = $request->file_lembaga[$i]->getClientOriginalName();
-                    $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
-                    $extension = $request->file_lembaga[$i]->getClientOriginalExtension();
-                    $foto = $filename . '_' . time() . '.' . $extension;
-                    $request->file_lembaga[$i]->storeAs('public/dokumen_member_lembaga', $foto);
+            if ($request->has('file_lembaga')) {
+                if (!is_null(request('file_lembaga')) > 0) {
+                    if (count($request->file_lembaga) > 0) {
+                        $keys = array_keys($request->file);
+                        for ($i = 0; $i < count($request->file_lembaga); $i++) {
+                            $filenameWithExt = $request->file_lembaga[$i]->getClientOriginalName();
+                            $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
+                            $extension = $request->file_lembaga[$i]->getClientOriginalExtension();
+                            $foto = $filename . '_' . time() . '.' . $extension;
+                            $request->file_lembaga[$i]->storeAs('public/dokumen_member_lembaga', $foto);
 
-                    $jenis = JenisDokumen::where('nama_jenis', $request->jenis_file[$keys[$i]])->first();
-                    $dokumen = new DokumenMember();
-                    $dokumen->jenis_dokumen_id = $jenis->jenis_dokumen_id;
-                    $dokumen->informasi_akun_id = $informasi_lembaga->informasi_akun_id;
-                    $dokumen->versi_unggah = 1;
-                    $dokumen->tanggal_unggah = date('Y-m-d');
-                    $dokumen->nama_dokumen = $foto;
-                    $dokumen->nama_file = $foto;
-                    $dokumen->save();
+                            $jenis = JenisDokumen::where('nama_jenis', $request->jenis_file[$keys[$i]])->first();
+                            $dokumen = new DokumenMember();
+                            $dokumen->jenis_dokumen_id = $jenis->jenis_dokumen_id;
+                            $dokumen->informasi_akun_id = $informasi_lembaga->informasi_akun_id;
+                            $dokumen->versi_unggah = 1;
+                            $dokumen->tanggal_unggah = date('Y-m-d');
+                            $dokumen->nama_dokumen = $foto;
+                            $dokumen->nama_file = $foto;
+                            $dokumen->save();
+                        }
+                    }
                 }
             }
         }
@@ -347,7 +357,7 @@ class CalonAnggotaController extends Controller
      */
     public function update(Request $request, InformasiAkun $calon)
     {
-        if (!is_null($calon->member())) {
+        if (!is_null($calon->member()->first())) {
             $request->validate([
                 "nik" => ['required', 'size:16'],
                 "nama" => ['required'],
@@ -387,7 +397,7 @@ class CalonAnggotaController extends Controller
             ]);
         }
 
-        if (!is_null($calon->member())) {
+        if (!is_null($calon->member()->first())) {
             $informasi = $calon;
             $informasi->email = $request->email;
             $informasi->no_hp = $request->no_hp;
@@ -491,18 +501,20 @@ class CalonAnggotaController extends Controller
             if (isset($request->file)) {
                 $keys = array_keys($request->file);
                 for ($i = 0; $i < count($keys); $i++) {
-                    Storage::delete("storage/dokumen_member/" . $calon->dokumen_member()->where('jenis_dokumen_id', JenisDokumen::where('nama_jenis', $request->jenis_file[$keys[$i]])->first()->jenis_dokumen_id)->first()->nama_file);
+                    if (!is_null($calon->dokumen_member()->where('jenis_dokumen_id', JenisDokumen::where('nama_jenis', $request->jenis_file[$keys[$i]])->first()->jenis_dokumen_id)->first())) {
+                        Storage::delete("storage/dokumen_member/" . $calon->dokumen_member()->where('jenis_dokumen_id', JenisDokumen::where('nama_jenis', $request->jenis_file[$keys[$i]])->first()->jenis_dokumen_id)->first()->nama_file);
+                    }
                 }
 
-                for ($i = 0; $i < count($request->file); $i++) {
-                    $filenameWithExt = $request->file[$i]->getClientOriginalName();
+                for ($i = 0; $i < count($keys); $i++) {
+                    $filenameWithExt = $request->file[$keys[$i]]->getClientOriginalName();
                     $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
-                    $extension = $request->file[$i]->getClientOriginalExtension();
+                    $extension = $request->file[$keys[$i]]->getClientOriginalExtension();
                     $foto = $filename . '_' . time() . '.' . $extension;
-                    $request->file[$i]->storeAs('public/dokumen_member', $foto);
+                    $request->file[$keys[$i]]->storeAs('public/dokumen_member', $foto);
 
                     $jenis = JenisDokumen::where('nama_jenis', $request->jenis_file[$keys[$i]])->first();
-                    $dokumen = new DokumenMember();
+                    $dokumen = !is_null($calon->dokumen_member()->where('jenis_dokumen_id', JenisDokumen::where('nama_jenis', $request->jenis_file[$keys[$i]])->first()->jenis_dokumen_id)->first()) ? $calon->dokumen_member()->where('jenis_dokumen_id', JenisDokumen::where('nama_jenis', $request->jenis_file[$keys[$i]])->first()->jenis_dokumen_id)->first() : new DokumenMember();
                     $dokumen->jenis_dokumen_id = $jenis->jenis_dokumen_id;
                     $dokumen->informasi_akun_id = $informasi->informasi_akun_id;
                     $dokumen->versi_unggah = 1;
@@ -539,20 +551,19 @@ class CalonAnggotaController extends Controller
                 ]);
             }
 
-            $npwp_lembaga = new Npwp();
-            $npwp_lembaga->npwp = $request->npwp;
+            $npwp_lembaga = is_null($calon->lembaga()->first()->npwp()->first()) ? new Npwp() : $calon->lembaga()->first()->npwp()->first();
+            $npwp_lembaga->npwp = $request->npwp_lembaga;
             $npwp_lembaga->save();
 
-            $lembaga = new Lembaga();
+            $lembaga = $calon->lembaga()->first();
             $lembaga->informasi_akun_id = $informasi_lembaga->informasi_akun_id;
             $lembaga->npwp_id = $npwp_lembaga->npwp_id;
-            $lembaga->status_member_id = $statusMember->status_member_id;
             $lembaga->nama_lembaga = $request->nama_lembaga;
             $lembaga->bidang_usaha = $request->bidang_usaha;
             $lembaga->is_aktif = true;
             $lembaga->save();
 
-            $rekening = new RekeningBank();
+            $rekening = $calon->rekening_bank()->where('nomor_rekening', $request->nomor_rekening_lembaga)->count() > 0 ? $calon->rekening_bank()->where('nomor_rekening', $request->nomor_rekening_lembaga)->first() : $calon->rekening_bank()->first();
             $rekening->informasi_akun_id = $informasi_lembaga->informasi_akun_id;
             $rekening->bank_id = $request->nama_bank_lembaga;
             $rekening->nomor_rekening = $request->nomor_rekening_lembaga;
@@ -564,21 +575,23 @@ class CalonAnggotaController extends Controller
             $rekening->save();
 
             if (count($request->file_lembaga) > 0) {
-                $keys = array_keys($request->file);
+                $keys = array_keys($request->file_lembaga);
 
                 for ($i = 0; $i < count($keys); $i++) {
-                    Storage::delete("storage/dokumen_member/" . $calon->dokumen_member()->where('jenis_dokumen_id', JenisDokumen::where('nama_jenis', $request->jenis_file[$keys[$i]])->first()->jenis_dokumen_id)->first()->nama_file);
+                    if (!is_null($calon->dokumen_member()->where('jenis_dokumen_id', JenisDokumen::where('nama_jenis', $request->jenis_file_lembaga[$keys[$i]])->first()->jenis_dokumen_id)->first())) {
+                        Storage::delete("storage/dokumen_member/" . $calon->dokumen_member()->where('jenis_dokumen_id', JenisDokumen::where('nama_jenis', $request->jenis_file_lembaga[$keys[$i]])->first()->jenis_dokumen_id)->first()->nama_file);
+                    }
                 }
 
-                for ($i = 0; $i < count($request->file_lembaga); $i++) {
-                    $filenameWithExt = $request->file_lembaga[$i]->getClientOriginalName();
+                for ($i = 0; $i < count($keys); $i++) {
+                    $filenameWithExt = $request->file_lembaga[$keys[$i]]->getClientOriginalName();
                     $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
-                    $extension = $request->file_lembaga[$i]->getClientOriginalExtension();
+                    $extension = $request->file_lembaga[$keys[$i]]->getClientOriginalExtension();
                     $foto = $filename . '_' . time() . '.' . $extension;
-                    $request->file_lembaga[$i]->storeAs('public/dokumen_member_lembaga', $foto);
+                    $request->file_lembaga[$keys[$i]]->storeAs('public/dokumen_member_lembaga', $foto);
 
-                    $jenis = JenisDokumen::where('nama_jenis', $request->jenis_file[$keys[$i]])->first();
-                    $dokumen = new DokumenMember();
+                    $jenis = JenisDokumen::where('nama_jenis', $request->jenis_file_lembaga[$keys[$i]])->first();
+                    $dokumen = !is_null($calon->dokumen_member()->where('jenis_dokumen_id', JenisDokumen::where('nama_jenis', $request->jenis_file_lembaga[$keys[$i]])->first()->jenis_dokumen_id)->first()) ? $calon->dokumen_member()->where('jenis_dokumen_id', JenisDokumen::where('nama_jenis', $request->jenis_file_lembaga[$keys[$i]])->first()->jenis_dokumen_id)->first() : new DokumenMember();
                     $dokumen->jenis_dokumen_id = $jenis->jenis_dokumen_id;
                     $dokumen->informasi_akun_id = $informasi_lembaga->informasi_akun_id;
                     $dokumen->versi_unggah = 1;

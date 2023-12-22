@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Administrasi\KasBank;
 use App\Http\Controllers\Controller;
 use App\Models\JenisVerifikasi;
 use App\Models\Keuangan;
+use App\Models\RekeningPusat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -118,7 +119,7 @@ class VerifikasiKasBankController extends Controller
 
         $jenisVerifikasi = JenisVerifikasi::where('nama_verifikasi', 'Verifikasi Keuangan')->first();
 
-        $keuangan->verified_log()->create([
+        $verified_log = $keuangan->verified_log()->create([
             'informasi_akun_id' => $keuangan->rekening_bank()->first()->informasi_akun()->first()->informasi_akun_id,
             'admin_id' => Auth::user()->informasi_akun()->first()->member()->first()->admin()->first()->admin_id,
             'jenis_verifikasi_id' => $jenisVerifikasi->jenis_verifikasi_id,
@@ -127,14 +128,143 @@ class VerifikasiKasBankController extends Controller
             'keterangan' => $request->keterangan,
         ]);
 
+        $rekeningPusat = RekeningPusat::where('aktif', true)->where('status', true)->first();
+
+        // Cash Bank In
+        if (!is_null($keuangan->keuangan_cash_in_trading()->first()) && $keuangan->jenis_transaksi()->first()->nama_jenis == 'Cash / Bank In (Trading)') {
+            $verified_log->dana_keuangan()->create([
+                'rekening_pusat_id' => $rekeningPusat->rekening_pusat_id,
+                'jumlah_dana' => $keuangan->jumlah,
+                'jenis' => 'debit',
+                'keterangan' => 'Deposit Jaminan'
+            ]);
+
+            if ($request->confirmation == 'true') {
+                $keuangan->rekening_bank()->first()->update([
+                    'saldo' => $keuangan->rekening_bank()->first()->saldo + $keuangan->keuangan_cash_in_trading()->first()->saldo_belum_teralokasi
+                ]);
+
+                $rekeningPusat->update([
+                    'saldo' => $rekeningPusat->saldo + $keuangan->jumlah
+                ]);
+
+                $keuangan->rekening_bank()->first()->informasi_akun()->first()->jaminan()->first()->update([
+                    'total_saldo_jaminan' => $keuangan->rekening_bank()->first()->informasi_akun()->first()->jaminan()->first()->total_saldo_jaminan + $keuangan->keuangan_cash_in_trading()->first()->sisa_alokasi,
+                    'saldo_tersedia' => $keuangan->rekening_bank()->first()->informasi_akun()->first()->jaminan()->first()->saldo_tersedia + $keuangan->keuangan_cash_in_trading()->first()->sisa_alokasi
+                ]);
+            }
+        }
+
+        if (!is_null($keuangan->keuangan_cash_non_trading()->first()) && $keuangan->jenis_transaksi()->first()->nama_jenis == 'Cash / Bank In (Non-Trading)') {
+
+            $verified_log->dana_keuangan()->create([
+                'rekening_pusat_id' => $rekeningPusat->rekening_pusat_id,
+                'jumlah_dana' => $keuangan->jumlah,
+                'jenis' => 'debit',
+                'keterangan' => 'Deposit Saldo'
+            ]);
+
+            if ($request->confirmation == 'true') {
+                $keuangan->rekening_bank()->first()->update([
+                    'saldo' => $keuangan->rekening_bank()->first()->saldo + $keuangan->jumlah
+                ]);
+                $rekeningPusat->update([
+                    'saldo' => $rekeningPusat->saldo + $keuangan->jumlah
+                ]);
+            }
+        }
+
+        // Cash Bank Out
+        if ($keuangan->jenis_transaksi()->first()->nama_jenis == 'Cash / Bank Out (Pembayaran Fee)') {
+
+            $verified_log->dana_keuangan()->create([
+                'rekening_pusat_id' => $rekeningPusat->rekening_pusat_id,
+                'jumlah_dana' => $keuangan->jumlah,
+                'jenis' => 'kredit',
+                'keterangan' => 'Withdraw Saldo'
+            ]);
+
+            if ($request->confirmation == 'true') {
+                $keuangan->rekening_bank()->first()->update([
+                    'saldo' => $keuangan->rekening_bank()->first()->saldo - $keuangan->jumlah
+                ]);
+                $rekeningPusat->update([
+                    'saldo' => $rekeningPusat->saldo - $keuangan->jumlah
+                ]);
+            }
+        }
+        if (!is_null($keuangan->keuangan_cash_settlement()->first()) && $keuangan->jenis_transaksi()->first()->nama_jenis == 'Cash / Bank Out (Settlement)') {
+
+
+            $verified_log->dana_keuangan()->create([
+                'rekening_pusat_id' => $rekeningPusat->rekening_pusat_id,
+                'jumlah_dana' => $keuangan->jumlah,
+                'jenis' => 'kredit',
+                'keterangan' => 'Withdraw Jaminan After Lelang'
+            ]);
+
+            if ($request->confirmation == 'true') {
+                $keuangan->rekening_bank()->first()->update([
+                    'saldo' => $keuangan->rekening_bank()->first()->saldo + $keuangan->jumlah
+                ]);
+                $rekeningPusat->update([
+                    'saldo' => $rekeningPusat->saldo - $keuangan->jumlah
+                ]);
+                $keuangan->keuangan_cash_settlement()->first()->rekening_bank()->first()->update([
+                    'saldo' => $keuangan->keuangan_cash_settlement()->first()->rekening_bank()->first()->saldo - $keuangan->jumlah
+                ]);
+                // $keuangan->rekening_bank()->first()->update([
+                //     'saldo' => $keuangan->rekening_bank()->first()->saldo - $keuangan->jumlah
+                // ]);
+            }
+        }
+        if (!is_null($keuangan->keuangan_cash_pengembalian_collateral()->first()) && $keuangan->jenis_transaksi()->first()->nama_jenis == 'Cash / Bank Out (Pengembalian Collateral)') {
+            $verified_log->dana_keuangan()->create([
+                'rekening_pusat_id' => $rekeningPusat->rekening_pusat_id,
+                'jumlah_dana' => $keuangan->jumlah,
+                'jenis' => 'kredit',
+                'keterangan' => 'Withdraw Jaminan'
+            ]);
+
+            if ($request->confirmation == 'true') {
+                $keuangan->rekening_bank()->first()->update([
+                    'saldo' => $keuangan->rekening_bank()->first()->saldo + $keuangan->jumlah
+                ]);
+
+                $keuangan->keuangan_cash_pengembalian_collateral()->first()->rekening_bank()->first()->update([
+                    'saldo' => $keuangan->keuangan_cash_pengembalian_collateral()->first()->rekening_bank()->first()->saldo - $keuangan->jumlah
+                ]);
+
+                $rekeningPusat->update([
+                    'saldo' => $rekeningPusat->saldo - $keuangan->jumlah
+                ]);
+            }
+        }
+
         return redirect('/administrasi/kas_bank/verifikasi/' . $keuangan->keuangan_id)->with('msg', '<div class="alert alert-success alert-dismissible fade show" role="alert"><strong>Sukses!</strong> Data Keuangan sudah di konfirmasi.<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
     }
 
     public function confirmation_ulang(Request $request, Keuangan $keuangan)
     {
         if (!is_null(DB::table('keuangan_verified_log')->where('keuangan_id', $keuangan->keuangan_id)->where('verified_log_id', $keuangan->verified_log()->first()->verified_log_id)->first())) {
+
+            // if (!is_null($keuangan->verified_log()->first()->dana_keuangan()->first())) {
+            //     $dana = $keuangan->verified_log()->first()->dana_keuangan()->first();
+
+            // if ($dana->jenis == 'debit') {
+            //     $keuangan->verified_log()->first()->dana_keuangan()->first()->rekening_pusat()->first()->update([
+            //         'saldo' => $keuangan->verified_log()->first()->dana_keuangan()->first()->rekening_pusat()->first()->saldo - $dana->jumlah_dana
+            //     ]);
+            // } else {
+            //     $keuangan->verified_log()->first()->dana_keuangan()->first()->rekening_pusat()->first()->update([
+            //         'saldo' => $keuangan->verified_log()->first()->dana_keuangan()->first()->rekening_pusat()->first()->saldo + $dana->jumlah_dana
+            //     ]);
+            // }
+            // }
+
             $keuangan->verified_log()->first()->delete();
         }
+
 
         return redirect('/administrasi/kas_bank/verifikasi/' . $keuangan->keuangan_id)->with('msg', '<div class="alert alert-success alert-dismissible fade show" role="alert"><strong>Sukses!</strong> Data Keuangan sudah di konfirmasi ulang.<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
     }

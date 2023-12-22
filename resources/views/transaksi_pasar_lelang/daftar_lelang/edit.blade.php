@@ -388,7 +388,7 @@
                             <div class="col-md-12">
                                 <div class="row mb-0">
                                     <div class="col-md-6 offset-md-4 d-flex align-items-end">
-                                        <a type="button" href="{{ route('transaksi.lelang_baru.show', $lelang->lelang_id) }}" class="btn btn-primary mr-2"><i class="fas fa-arrow-left"></i> Kembali</a>
+                                        <a type="button" href="{{ route('transaksi.lelang_list.show', $lelang->lelang_id) }}" class="btn btn-primary mr-2"><i class="fas fa-arrow-left"></i> Kembali</a>
                                         <button type="submit" class="btn mx-2 btn-success"><i class="fas fa-pen"></i> Simpan</button>
                                     </div>
                                 </div>

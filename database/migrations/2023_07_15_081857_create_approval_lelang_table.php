@@ -15,13 +15,13 @@ return new class extends Migration
             $table->uuid('approval_lelang_id')->primary();
             $table->uuid('informasi_akun_id');
             $table->uuid('jenis_harga_id');
-            $table->uuid('verified_log_id');
+            $table->uuid('lelang_id');
             $table->decimal('harga_pemenang', 18, 2);
             $table->timestamps();
 
             $table->foreign('informasi_akun_id')->references('informasi_akun_id')->on('informasi_akun')->cascadeOnDelete();
             $table->foreign('jenis_harga_id')->references('jenis_harga_id')->on('jenis_harga')->cascadeOnDelete();
-            $table->foreign('verified_log_id')->references('verified_log_id')->on('verified_log')->cascadeOnDelete();
+            $table->foreign('lelang_id')->references('lelang_id')->on('lelang')->cascadeOnDelete();
         });
     }
 

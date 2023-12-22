@@ -30,23 +30,44 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="row mb-3 justify-content-center">
+                                    <label for="jenis_dokumen_produk_id" class="col-md-4 col-form-label text-md-end">{{ __('Jenis Dokumen Produk')
+                                        }}</label>
+
+                                    <div class="col-md-6">
+                                        <select class="custom-select @error('jenis_dokumen_produk_id') is-invalid @enderror" name="jenis_dokumen_produk_id" id="jenis_dokumen_produk_id">
+                                            @if(count($jenisDokumen) > 0)
+                                            @foreach($jenisDokumen as $jd)
+                                            <option {{ $file->jenis_dokumen_produk_id == $jd->jenis_dokumen_produk_id ? 'selected' : '' }} value="{{ $jd->jenis_dokumen_produk_id }}">{{ $jd->nama_jenis }}</option>
+                                            @endforeach
+                                            @endif
+                                        </select>
+
+                                        @error('jenis_dokumen_produk_id')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3 justify-content-center">
                                     <label for="gambar" class="col-md-4 col-form-label text-md-end">{{
                                         __('File')
                                         }}</label>
-            
+
                                     <div class="col-md-6">
                                         <div class="custom-file">
                                             <input type="file" name="gambar" class="custom-file-input" id="gambar">
                                             <label class="custom-file-label" for="gambar">Pilih File</label>
                                         </div>
-            
+
                                         @error('gambar')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
                                         </span>
                                         @enderror
 
-                                        <img src="{{ asset('storage/produk/' . $file->nama_file) }}" alt="{{ $file->nama_dokumen }}" class="img img-thumbnail img-temporary" style="width: 800px; height: auto"> 
+                                        <img src="{{ asset('storage/produk/' . $file->nama_file) }}" alt="{{ $file->nama_dokumen }}" class="img img-thumbnail img-temporary" style="width: 800px; height: auto">
                                     </div>
                                 </div>
 
@@ -59,7 +80,7 @@
                                             <option {{ $file->is_gambar_utama == true ? 'selected' : '' }} value="{{ 'true' }}">Ya</option>
                                             <option {{ $file->is_gambar_utama == false ? 'selected' : '' }} value="{{ 'false' }}">Tidak</option>
                                         </select>
-            
+
                                         @error('is_gambar_utama')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
@@ -74,7 +95,7 @@
 
                                     <div class="col-md-6">
                                         <textarea class="form-control @error('keterangan') is-invalid @enderror" name="keterangan" id="keterangan" cols="30" rows="10">{{ $file->keterangan }}</textarea>
-            
+
                                         @error('keterangan')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>

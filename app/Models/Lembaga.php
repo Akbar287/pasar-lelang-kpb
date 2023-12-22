@@ -44,4 +44,9 @@ class Lembaga extends Model
     {
         return $this->belongsTo(StatusMember::class, 'status_member_id', 'status_member_id');
     }
+
+    public function lembaga_informasi_pic()
+    {
+        return $this->hasMany(LembagaInformasiPic::class, 'lembaga_id', 'lembaga_id');
+    }
 }

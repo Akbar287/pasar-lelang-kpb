@@ -27,6 +27,10 @@ class VerifikasiKontrakController extends Controller
                     }
                     return $actionBtn;
                 })
+                ->addColumn('nama_member', function ($row) {
+                    $actionBtn = $row->informasi_akun()->first()->member()->first()->ktp()->first()->nama;
+                    return $actionBtn;
+                })
                 ->addColumn('komoditas', function ($row) {
                     $actionBtn = $row->komoditas()->first()->nama_komoditas;
                     return $actionBtn;

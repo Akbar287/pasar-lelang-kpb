@@ -7,6 +7,8 @@ use App\Http\Requests\KomoditasRequest;
 use App\Models\JenisKomoditas;
 use App\Models\Komoditas;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\DataTables;
 
 class KomoditasController extends Controller
@@ -116,5 +118,35 @@ class KomoditasController extends Controller
             'message' => 'data komoditas has been catched',
             'status' => 'success'
         ], 200);
+    }
+
+    public function api_komoditas(Request $request)
+    {
+        $page = $request->get('page') ?? 0;
+        $size = $request->get('size') ?? 5;
+        $total = Komoditas::count();
+
+        $page_count = ceil($total / $size);
+
+        $data = DB::Table('komoditas')
+            ->orderBy('nama_komoditas', 'asc')
+            ->forPage($page, $size)
+            ->get();
+
+        if ($total != 0 || $page_count != 0) {
+            $paginator = new LengthAwarePaginator($data, $total, $page_count, $page);
+
+            return response()->json([
+                'data' => $paginator,
+                'message' => 'data komoditas has been catched',
+                'status' => 'success'
+            ], 200);
+        } else {
+            return response()->json([
+                'data' => [],
+                'message' => 'data komoditas has been catched',
+                'status' => 'success'
+            ], 200);
+        }
     }
 }

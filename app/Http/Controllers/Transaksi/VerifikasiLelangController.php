@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Transaksi;
 
 use App\Http\Controllers\Controller;
+use App\Models\DaftarPesertaLelang;
 use App\Models\EventLelang;
 use App\Models\JenisHarga;
 use App\Models\JenisVerifikasi;
 use App\Models\Lelang;
 use App\Models\MasterSesiLelang;
+use App\Models\PesertaLelang;
 use App\Models\StatusLelang;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -66,8 +68,8 @@ class VerifikasiLelangController extends Controller
     {
         $jenisHarga = JenisHarga::get();
         $masterSesiLelang = MasterSesiLelang::where('is_aktif', true)->get();
-        $eventLelangOffline = EventLelang::where('is_open', true)->where('is_online', false)->get();
-        $eventLelangHybrid = EventLelang::where('is_open', true)->where('is_online', true)->get();
+        $eventLelangOffline = EventLelang::whereRaw('tanggal_lelang >= NOW()')->where('is_open', true)->where('is_online', false)->get();
+        $eventLelangHybrid = EventLelang::whereRaw('tanggal_lelang >= NOW()')->where('is_open', true)->where('is_online', true)->get();
         return view('transaksi_pasar_lelang/verifikasi_lelang/show', compact('lelang', 'jenisHarga', 'masterSesiLelang', 'eventLelangOffline', 'eventLelangHybrid'));
     }
 
@@ -75,8 +77,8 @@ class VerifikasiLelangController extends Controller
     {
         $jenisHarga = JenisHarga::get();
         $masterSesiLelang = MasterSesiLelang::where('is_aktif', true)->get();
-        $eventLelangOffline = EventLelang::where('is_open', true)->where('is_online', false)->get();
-        $eventLelangHybrid = EventLelang::where('is_open', true)->where('is_online', true)->get();
+        $eventLelangOffline = EventLelang::whereRaw('tanggal_lelang >= NOW()')->where('is_open', true)->where('is_online', false)->get();
+        $eventLelangHybrid = EventLelang::whereRaw('tanggal_lelang >= NOW()')->where('is_open', true)->where('is_online', true)->get();
         return view('transaksi_pasar_lelang/verifikasi_lelang/show_ditolak', compact('lelang', 'jenisHarga', 'masterSesiLelang', 'eventLelangOffline', 'eventLelangHybrid'));
     }
 
@@ -141,7 +143,6 @@ class VerifikasiLelangController extends Controller
 
     public function confirmation(Request $request, Lelang $lelang)
     {
-
         $informasi_akun = $lelang->kontrak()->first()->informasi_akun()->first();
         $statusLelangVerifikasi = StatusLelang::where('nama_status', 'Verifikasi')->first();
         $statusLelangAktif = StatusLelang::where('nama_status', 'Aktif')->first();
@@ -179,7 +180,7 @@ class VerifikasiLelangController extends Controller
             'keterangan' => $request->keterangan
         ]);
 
-        $lelang_verified_sesi = $lelang->lelang_verified_sesi()->create([
+        $lelang->lelang_verified_sesi()->create([
             'verified_log_id' => $verified_log->verified_log_id,
         ]);
 
@@ -210,28 +211,42 @@ class VerifikasiLelangController extends Controller
                     'tanggal' => ['required'],
                 ]);
 
-                $jenisPlatform = $lelang->jenis_platform_lelang()->create([
+                $lelang->jenis_platform_lelang()->create([
                     'online' => true,
                     'offline' => false
                 ]);
 
-                $lelang_sesi_online = $lelang->lelang_sesi_online()->create([
+                $el = $lelang->lelang_sesi_online()->create([
                     'master_sesi_lelang_id' => $request->master_sesi_lelang_id,
                     'tanggal' => $request->tanggal,
                     'is_verification_admin' => true
                 ]);
+
+                $pl = PesertaLelang::where('informasi_akun_id', $lelang->kontrak()->first()->informasi_akun_id)->where('master_sesi_lelang_id', $request->master_sesi_lelang_id)->where('tanggal', $request->tanggal)->first();
+
+                if (is_null($pl)) {
+                    $master_sesi = MasterSesiLelang::where('master_sesi_lelang_id', $request->master_sesi_lelang_id)->first();
+                    $master_sesi->peserta_lelang()->create([
+                        'informasi_akun_id' => $lelang->kontrak()->first()->informasi_akun_id,
+                        'master_sesi_lelang_id' => $request->master_sesi_lelang_id,
+                        'tanggal' => $request->tanggal,
+                        'kode_peserta_lelang' => $this->rekomendasiKodeAnggota($el)
+                    ]);
+                }
             } else {
                 $request->validate([
                     'event_lelang' => ['required']
                 ]);
 
+                $event = EventLelang::where('event_lelang_id', $request->event_lelang)->first();
+
                 if ($request->jenis_penyelenggaraan == 'hybrid') {
-                    $jenisPlatform = $lelang->jenis_platform_lelang()->create([
+                    $lelang->jenis_platform_lelang()->create([
                         'online' => true,
                         'offline' => true
                     ]);
                 } else {
-                    $jenisPlatform = $lelang->jenis_platform_lelang()->create([
+                    $lelang->jenis_platform_lelang()->create([
                         'online' => false,
                         'offline' => true
                     ]);
@@ -241,6 +256,16 @@ class VerifikasiLelangController extends Controller
                     'event_lelang_id' => $request->event_lelang,
                     'lelang_id' => $lelang->lelang_id
                 ]);
+
+                $dpl = DaftarPesertaLelang::where('event_lelang_id', $request->event_lelang)->where('informasi_akun_id', $lelang->kontrak()->first()->informasi_akun_id)->first();
+
+                if (is_null($dpl)) {
+                    DaftarPesertaLelang::create([
+                        'event_lelang_id' => $request->event_lelang,
+                        'informasi_akun_id' => $lelang->kontrak()->first()->informasi_akun_id,
+                        'kode_peserta_lelang' => $this->rekomendasiKodeAnggotaOffline($event)
+                    ]);
+                }
             }
 
             return redirect('/transaksi/verifikasi_lelang/' . $lelang->lelang_id)->with('msg', '<div class="alert alert-success alert-dismissible fade show" role="alert"><strong>Sukses!</strong> Data Lelang telah di verifikasi.<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
@@ -252,5 +277,18 @@ class VerifikasiLelangController extends Controller
 
             return redirect('/transaksi/verifikasi_lelang/ditolak/' . $lelang->lelang_id)->with('msg', '<div class="alert alert-success alert-dismissible fade show" role="alert"><strong>Sukses!</strong> Data Lelang telah di verifikasi.<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
         }
+    }
+
+    public function rekomendasiKodeAnggota($lelangSesiOnline)
+    {
+        $temp = $lelangSesiOnline->master_sesi_lelang()->first()->peserta_lelang()->where('tanggal', $lelangSesiOnline->tanggal)->orderBy('kode_peserta_lelang', 'desc')->first();
+
+        return is_null($temp) ? 1 : intval($temp->kode_peserta_lelang) + 1;
+    }
+
+    public function rekomendasiKodeAnggotaOffline($event)
+    {
+        $temp = $event->daftar_peserta_lelang()->count();
+        return is_null($temp) ? 1 : intval($temp) + 1;
     }
 }

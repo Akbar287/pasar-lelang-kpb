@@ -28,6 +28,16 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="row mb-3 justify-content-center">
+                                    <label for="penyelenggara_pasar_lelang_id" class="col-md-4 col-form-label text-md-end">{{ __('Penyelenggara Pasar Lelang')
+                                        }}</label>
+            
+                                    <div class="col-md-6">
+                                            <input id="penyelenggara_pasar_lelang_id" type="text" readonly
+                                                class="form-control @error('penyelenggara_pasar_lelang_id') is-invalid @enderror" name="penyelenggara_pasar_lelang_id"
+                                                value="{{ $profile->penyelenggara_pasar_lelang()->first()->admin()->first()->member()->first()->ktp()->first()->nama . ' ('. $profile->penyelenggara_pasar_lelang()->first()->admin()->first()->member()->first()->ktp()->first()->nik .')' }}">
+                                    </div>
+                                </div>
+                                <div class="row mb-3 justify-content-center">
                                     <label for="registrasi_id" class="col-md-4 col-form-label text-md-end">{{ __('Registrasi Id')
                                         }}</label>
             

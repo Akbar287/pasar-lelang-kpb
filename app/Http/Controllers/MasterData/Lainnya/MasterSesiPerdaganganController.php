@@ -104,4 +104,15 @@ class MasterSesiPerdaganganController extends Controller
             'is_aktif' => request('is_aktif') == 'false' ? false : true,
         ];
     }
+
+    public function api_master_sesi_perdagangan(Request $request)
+    {
+        $sesi = MasterSesiLelang::select('ktp.nama')->addSelect('master_sesi_lelang.*')->addSelect('lelang_sesi_online.is_aktif')->join('penyelenggara_pasar_lelang', 'penyelenggara_pasar_lelang.penyelenggara_pasar_lelang_id', 'master_sesi_lelang.penyelenggara_pasar_lelang_id')->join('admin', 'admin.admin_id', 'penyelenggara_pasar_lelang.admin_id')->join('member', 'member.member_id', 'admin.member_id')->join('ktp', 'ktp.member_id', 'member.member_id')->join('lelang_sesi_online', 'lelang_sesi_online.master_sesi_lelang_id', 'master_sesi_lelang.master_sesi_lelang_id')->orderBy('tanggal', 'desc')->where('master_sesi_lelang.is_aktif', true)->paginate(request('page'));
+
+        return response()->json([
+            'data' => $sesi,
+            'message' => 'Sesi Lelang Online has been catched',
+            'status' => 'success'
+        ], 200);
+    }
 }

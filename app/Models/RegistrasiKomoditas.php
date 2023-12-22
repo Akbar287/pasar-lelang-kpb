@@ -26,6 +26,7 @@ class RegistrasiKomoditas extends Model
     protected $fillable = [
         'informasi_akun_id',
         'jenis_registrasi_komoditas_id',
+        'status_registrasi_komoditas_id',
         'komoditas_id',
         'mutu_id',
         'gudang_id',
@@ -64,8 +65,18 @@ class RegistrasiKomoditas extends Model
         return $this->belongsTo(Gudang::class, 'gudang_id', 'gudang_id');
     }
 
+    public function status_registrasi_komoditas()
+    {
+        return $this->belongsTo(StatusRegistrasiKomoditas::class, 'status_registrasi_komoditas_id', 'status_registrasi_komoditas_id');
+    }
+
     public function registrasi_komoditas_alokasi()
     {
         return $this->hasOne(RegistrasiKomoditasAlokasi::class, 'registrasi_komoditas_id', 'registrasi_komoditas_id');
+    }
+
+    public function verified_log()
+    {
+        return $this->belongsToMany(VerifiedLog::class, 'registrasi_komoditas_verified_log', 'registrasi_komoditas_id', 'verified_log_id');
     }
 }

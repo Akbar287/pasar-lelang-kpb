@@ -5,9 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 use Ramsey\Uuid\Uuid;
 
-class Userlogin extends Authenticatable
+class Userlogin extends Authenticatable implements JWTSubject
 {
     use HasFactory, SoftDeletes;
     protected $table = 'userlogin';
@@ -35,5 +36,20 @@ class Userlogin extends Authenticatable
     public function informasi_akun()
     {
         return $this->belongsTo(InformasiAkun::class, 'informasi_akun_id', 'informasi_akun_id');
+    }
+
+    public function operator_pasar_lelang()
+    {
+        return $this->hasOne(OperatorPasarLelang::class, 'userlogin_id', 'userlogin_id');
+    }
+
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
     }
 }

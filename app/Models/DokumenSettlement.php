@@ -37,11 +37,11 @@ class DokumenSettlement extends Model
 
     public function jaminan_komoditas()
     {
-        return $this->hasOne(JaminanKomoditas::class, 'dokumen_settlement_id', 'dokumen_settlement_id');
+        return $this->belongsToMany(JaminanKomoditas::class, 'jaminan_komoditas_dokumen_settlement', 'dokumen_settlement_id', 'jaminan_komoditas_id');
     }
 
     public function release_cash()
     {
-        return $this->hasOne(ReleaseCash::class, 'dokumen_settlement_id', 'dokumen_settlement_id');
+        return $this->belongsToMany(ReleaseCash::class, 'release_cash_dokumen_settlement', 'dokumen_settlement_id', 'release_cash_id');
     }
 }

@@ -16,32 +16,50 @@ class KonfigurasiController extends Controller
             [
                 "nama" => "Role",
                 "icon" => "th",
-                "url" => route('anggota.index'),
+                "url" => route('konfigurasi.role'),
                 "color" => "primary"
             ],
             [
-                "nama" => "Jenis Inisiasi",
-                "icon" => "filter",
-                "url" => route('menu.procurement'),
-                "color" => "secondary"
+                "nama" => "Admin",
+                "icon" => "upload",
+                "url" => route('konfigurasi.admin'),
+                "color" => "warning"
             ],
             [
-                "nama" => "Jenis Perdagangan",
+                "nama" => "Area",
+                "icon" => "map",
+                "url" => route('konfigurasi.area'),
+                "color" => "info"
+            ],
+            [
+                "nama" => "Mutu",
+                "icon" => "upload",
+                "url" => route('konfigurasi.mutu'),
+                "color" => "danger"
+            ],
+            [
+                "nama" => "Jenis",
+                "icon" => "filter",
+                "url" => route('konfigurasi.jenis'),
+                "color" => "info"
+            ],
+            [
+                "nama" => "Aplikasi",
+                "icon" => "phone",
+                "url" => route('konfigurasi.aplikasi'),
+                "color" => "primary"
+            ],
+            [
+                "nama" => "Status",
                 "icon" => "tint",
-                "url" => route('fasilitas.index'),
+                "url" => route('konfigurasi.status'),
                 "color" => "success"
             ],
             [
-                "nama" => "Jenis Suspend",
-                "icon" => "upload",
-                "url" => route('produk.index'),
-                "color" => "danger"
-            ],
-            [
-                "nama" => "Jenis Status member",
-                "icon" => "upload",
-                "url" => route('produk.index'),
-                "color" => "danger"
+                "nama" => "Laporan",
+                "icon" => "file",
+                "url" => route('konfigurasi.laporan'),
+                "color" => "primary"
             ],
         ];
         return view('konfigurasi/index', compact('allMenu'));

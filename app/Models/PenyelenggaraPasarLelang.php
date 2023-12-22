@@ -42,6 +42,11 @@ class PenyelenggaraPasarLelang extends Model
         return $this->hasMany(Kontrak::class, 'penyelenggara_pasar_lelang_id', 'penyelenggara_pasar_lelang_id');
     }
 
+    public function offline_profile()
+    {
+        return $this->hasMany(OfflineProfile::class, 'penyelenggara_pasar_lelang_id', 'penyelenggara_pasar_lelang_id');
+    }
+
     public function admin()
     {
         return $this->belongsTo(Admin::class, 'admin_id', 'admin_id');

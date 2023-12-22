@@ -48,4 +48,9 @@ class DetailJaminan extends Model
     {
         return $this->hasMany(RegistrasikomoditasJaminan::class, 'detail_jaminan_id', 'detail_jaminan_id');
     }
+
+    public function verified_log()
+    {
+        return $this->belongsToMany(VerifiedLog::class, 'detail_jaminan_verified_log', 'detail_jaminan_id', 'verified_log_id');
+    }
 }

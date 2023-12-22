@@ -16,19 +16,19 @@ class AdministrasiPasarLelangController extends Controller
             [
                 "nama" => "Kas dan Bank",
                 "icon" => "th",
-                "url" => route('anggota.index'),
+                "url" => route('administrasi.kas_bank'),
                 "color" => "primary"
             ],
             [
                 "nama" => "Gudang",
                 "icon" => "filter",
-                "url" => route('menu.procurement'),
+                "url" => route('administrasi.gudang'),
                 "color" => "secondary"
             ],
             [
                 "nama" => "Jaminan Lelang",
                 "icon" => "tint",
-                "url" => route('fasilitas.index'),
+                "url" => route('administrasi.jaminan'),
                 "color" => "success"
             ]
         ];

@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
-use App\Models\JenisRegistrasiKomoditas;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -45,6 +44,8 @@ class DatabaseSeeder extends Seeder
         $this->call(StatusLelangSeeder::class);
         $this->call(StatusEventLelangSeeder::class);
         $this->call(KomoditasSeeder::class);
-        $this->call(JenisRegistrasiKomoditas::class);
+        $this->call(JenisRegistrasiKomoditasSeeder::class);
+        $this->call(StatusRegistrasiKomoditasSeeder::class);
+        $this->call(JenisDokumenProdukSeeder::class);
     }
 }

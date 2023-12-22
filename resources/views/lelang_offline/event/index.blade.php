@@ -20,8 +20,11 @@
                 <div class="card-header">
                     <h4>{{ __('List Event Lelang Offline') }}</h4>
                     <div class="card-header-action">
-                        <a href="{{ route('offline.event.create') }}" class="btn btn-primary">
+                        <a href="{{ route('offline.event.create') }}" class="btn btn-primary mr-2">
                             Tambah
+                        </a>
+                        <a href="{{ route('offline.event.history') }}" class="btn btn-info">
+                            Riwayat
                         </a>
                     </div>
                 </div>

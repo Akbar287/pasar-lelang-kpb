@@ -35,6 +35,7 @@
                             <thead>
                                 <tr>
                                     <th>Id Kontrak</th>
+                                    <th>Nama</th>
                                     <th>Komoditas</th>
                                     <th>Jenis Perdagangan</th>
                                     <th>Username</th>

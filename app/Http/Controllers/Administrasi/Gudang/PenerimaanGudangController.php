@@ -9,6 +9,8 @@ use App\Models\Komoditas;
 use App\Models\Member;
 use App\Models\Mutu;
 use App\Models\RegistrasiKomoditas;
+use App\Models\StatusMember;
+use App\Models\StatusRegistrasiKomoditas;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 
@@ -20,23 +22,31 @@ class PenerimaanGudangController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = RegistrasiKomoditas::get();
+            $data = StatusRegistrasiKomoditas::where('nama_status', 'Baru')->first()->registrasi_komoditas()->get();
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('jenis_registrasi', function ($row) {
-                    $actionBtn = $row->jenis_transaksi()->first()->nama_jenis;
+                    $actionBtn = $row->jenis_registrasi_komoditas()->first()->nama_jenis;
                     return $actionBtn;
                 })
-                ->addColumn('kode_transaksi', function ($row) {
+                ->addColumn('transaksi_id', function ($row) {
                     $actionBtn = $row->kode_transaksi;
                     return $actionBtn;
                 })
-                ->addColumn('nama_komoditas', function ($row) {
+                ->addColumn('komoditas', function ($row) {
                     $actionBtn = $row->komoditas()->first()->nama_komoditas;
                     return $actionBtn;
                 })
-                ->addColumn('nama_gudang', function ($row) {
-                    $actionBtn = $row->gudang->first()->nama_gudang;
+                ->addColumn('anggota', function ($row) {
+                    $actionBtn = $row->informasi_akun()->first()->member()->first()->ktp()->first()->nama;
+                    return $actionBtn;
+                })
+                ->addColumn('gudang', function ($row) {
+                    $actionBtn = $row->gudang()->first()->nama_gudang;
+                    return $actionBtn;
+                })
+                ->addColumn('nilai', function ($row) {
+                    $actionBtn = 'Rp. ' . number_format($row->nilai, 0, ".", ",");
                     return $actionBtn;
                 })
                 ->addColumn('tanggal', function ($row) {
@@ -88,7 +98,8 @@ class PenerimaanGudangController extends Controller
         ]);
 
         $jenisRegistrasi = JenisRegistrasiKomoditas::where('nama_jenis', $request->jenis_registrasi_id)->first();
-        $registrasi = $jenisRegistrasi->registrasi_komoditas()->create($this->registrasiKomoditasData());
+        $srk = StatusRegistrasiKomoditas::where('nama_status', 'Baru')->first();
+        $registrasi = $jenisRegistrasi->registrasi_komoditas()->create($this->registrasiKomoditasData($srk->status_registrasi_komoditas_id));
 
         if ($jenisRegistrasi->nama_jenis == 'Registrasi Komoditas (IN)') {
             $request->validate([
@@ -103,7 +114,6 @@ class PenerimaanGudangController extends Controller
             $registrasi->registrasi_komoditas_alokasi()->create($this->registrasiKomoditasAlokasi());
         }
 
-
         return redirect('/administrasi/gudang/penerimaan/' . $registrasi->registrasi_komoditas_id)->with('msg', '<div class="alert alert-success alert-dismissible fade show" role="alert"><strong>Sukses!</strong> Data Registrasi Komoditas sudah di tambah.<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
     }
 
@@ -112,7 +122,7 @@ class PenerimaanGudangController extends Controller
      */
     public function show(RegistrasiKomoditas $registrasi)
     {
-        return view('administrasi/gudang/penerimaan/show', compact('gudang'));
+        return view('administrasi/gudang/penerimaan/show', compact('registrasi'));
     }
 
     /**
@@ -121,7 +131,12 @@ class PenerimaanGudangController extends Controller
     public function edit(RegistrasiKomoditas $registrasi)
     {
         $gudang = Gudang::get();
-        return view('administrasi/gudang/penerimaan/edit', compact('gudang', 'registrasi'));
+        $informasi_akun = StatusMember::select('member.member_id')->addSelect('member.informasi_akun_id')->addSelect('ktp.nik')->addSelect('ktp.nama')->join('member', 'status_member.status_member_id', 'member.status_member_id')->join('ktp', 'ktp.member_id', 'member.member_id')->where('status_member.nama_status', 'Aktif')->get();
+        $mutu = Mutu::where('is_aktif', true)->get();
+        $komoditas = Komoditas::get();
+        $jenisRegistrasi = JenisRegistrasiKomoditas::get();
+        $kodeTransaksi = $this->transaksiGenerate();
+        return view('administrasi/gudang/penerimaan/edit', compact('gudang', 'registrasi', 'informasi_akun', 'mutu', 'komoditas', 'jenisRegistrasi', 'kodeTransaksi'));
     }
 
     /**
@@ -129,7 +144,38 @@ class PenerimaanGudangController extends Controller
      */
     public function update(Request $request, RegistrasiKomoditas $registrasi)
     {
-        $registrasi->update($this->registrasiKomoditasData());
+        $request->validate([
+            'jenis_registrasi_id' => ['required'],
+            'tanggal' => ['required'],
+            'transaksi_id' => ['required'],
+            'informasi_akun_id' => ['required'],
+            'gudang_id' => ['required'],
+            'komoditas_id' => ['required'],
+            'mutu_id' => ['required'],
+            'nomor_instruksi' => ['required'],
+            'nomor_bast' => ['required'],
+            'kadaluarsa' => ['required'],
+            'kuantitas' => ['required'],
+            'nilai' => ['required'],
+        ]);
+
+        $jenisRegistrasi = JenisRegistrasiKomoditas::where('nama_jenis', $request->jenis_registrasi_id)->first();
+
+        $registrasi->update($this->registrasiKomoditasData($registrasi->status_registrasi_komoditas_id));
+
+        if ($jenisRegistrasi->nama_jenis == 'Registrasi Komoditas (IN)') {
+            $request->validate([
+                'saldo_belum_teralokasi' => ['required'],
+                //'sisa_alokasi' => ['required'],
+                'jenis_alokasi' => ['required'],
+                'alokasi_collateral' => ['required'],
+                'alokasi_penyelesaian' => ['required'],
+                'alokasi_lain' => ['required'],
+            ]);
+
+            $registrasi->registrasi_komoditas_alokasi()->first()->update($this->registrasiKomoditasAlokasi());
+        }
+
 
         return redirect('/administrasi/gudang/penerimaan/' . $registrasi->registrasi_komoditas_id)->with('msg', '<div class="alert alert-success alert-dismissible fade show" role="alert"><strong>Sukses!</strong> Data Gudang sudah di ubah.<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
     }
@@ -162,18 +208,19 @@ class PenerimaanGudangController extends Controller
         return $temp;
     }
 
-    public function registrasiKomoditasData()
+    public function registrasiKomoditasData($status)
     {
         return [
             'informasi_akun_id' => request('informasi_akun_id'),
             'komoditas_id' => request('komoditas_id'),
             'mutu_id' => request('mutu_id'),
+            'status_registrasi_komoditas_id' => $status,
             'gudang_id' => request('gudang_id'),
             'tanggal' => request('tanggal'),
             'kode_transaksi' => request('transaksi_id'),
             'no_instruksi' => request('nomor_instruksi'),
-            'quantity' => request('kuantitas'),
-            'nilai' => request('nilai'),
+            'quantity' => str_replace(',', '', request('kuantitas')),
+            'nilai' => str_replace(',', '', request('nilai')),
             'no_bast' => request('nomor_bast'),
             'kadaluarsa' => request('kadaluarsa'),
             'keterangan' => request('keterangan'),
@@ -183,12 +230,12 @@ class PenerimaanGudangController extends Controller
     public function registrasiKomoditasAlokasi()
     {
         return [
-            'sisa_alokasi_saldo' => 0, // request('sisa_alokasi_saldo'),
-            'saldo_belum_teralokasi' => request('saldo_belum_teralokasi'),
-            'alokasi_kolateral' => request('alokasi_kolateral'),
-            'alokasi_penyelesaian' => request('alokasi_penyelesaian'),
-            'alokasi_lain' => request('alokasi_lain'),
-            'type_alokasi' => request('type_alokasi'),
+            'sisa_alokasi_saldo' => str_replace(',', '', request('sisa_alokasi')),
+            'saldo_belum_teralokasi' => str_replace(',', '', request('saldo_belum_teralokasi')),
+            'alokasi_kolateral' => str_replace(',', '', request('alokasi_collateral')),
+            'alokasi_penyelesaian' => str_replace(',', '', request('alokasi_penyelesaian')),
+            'alokasi_lain' => str_replace(',', '', request('alokasi_lain')),
+            'type_alokasi' => request('jenis_alokasi'),
         ];
     }
 }

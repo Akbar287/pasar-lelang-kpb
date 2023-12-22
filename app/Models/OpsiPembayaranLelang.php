@@ -26,9 +26,9 @@ class OpsiPembayaranLelang extends Model
         'informasi_akun_id',
         'pembayaran_lelang_id',
         'jenis_opsi_pembayaran_lelang_id',
-        'jenis_member',
+        'jenis_informasi_akun',
         'tagihan',
-        'biaya_lain_lain_penjual',
+        'biaya_lain_lain',
         'penyelesaian',
     ];
 

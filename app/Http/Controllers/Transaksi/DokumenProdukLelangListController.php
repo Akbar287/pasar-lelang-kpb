@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Transaksi;
 
 use App\Http\Controllers\Controller;
 use App\Models\DokumenProduk;
+use App\Models\JenisDokumenProduk;
 use App\Models\Lelang;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -11,6 +12,10 @@ use Yajra\DataTables\DataTables;
 
 class DokumenProdukLelangListController extends Controller
 {
+    public function __construct()
+    {
+        date_default_timezone_set('Asia/Jakarta');
+    }
     /**
      * Display a listing of the resource.
      */
@@ -20,6 +25,10 @@ class DokumenProdukLelangListController extends Controller
             $data = $lelang->dokumen_produk()->get();
             return DataTables::of($data)
                 ->addIndexColumn()
+                ->addColumn('jenis_dokumen', function ($row) {
+                    $actionBtn = $row->jenis_dokumen_produk()->first()->nama_jenis;
+                    return $actionBtn;
+                })
                 ->addColumn('gambar', function ($row) {
                     $actionBtn = '<img src="' . asset('storage/produk/' . $row->nama_file) . '" alt="' . $row->nama_dokumen . '" width="150" height="150" class="img img-thumbnail" />';
                     return $actionBtn;
@@ -39,7 +48,8 @@ class DokumenProdukLelangListController extends Controller
      */
     public function create(Lelang $lelang)
     {
-        return view('transaksi_pasar_lelang/file_lelang_list/create', compact('lelang'));
+        $jenisDokumen = JenisDokumenProduk::get();
+        return view('transaksi_pasar_lelang/file_lelang_list/create', compact('lelang', 'jenisDokumen'));
     }
 
     /**
@@ -83,7 +93,8 @@ class DokumenProdukLelangListController extends Controller
      */
     public function edit(Lelang $lelang, DokumenProduk $file)
     {
-        return view('transaksi_pasar_lelang/file_lelang_list/edit', compact('lelang', 'file'));
+        $jenisDokumen = JenisDokumenProduk::get();
+        return view('transaksi_pasar_lelang/file_lelang_list/edit', compact('lelang', 'file', 'jenisDokumen'));
     }
 
     /**
@@ -139,6 +150,7 @@ class DokumenProdukLelangListController extends Controller
     public function dokumenProdukFile($file, $dokumen, $isUtama = null)
     {
         return [
+            'jenis_dokumen_produk_id' => request('jenis_dokumen_produk_id'),
             'keterangan' => request('keterangan'),
             'nama_dokumen' => $dokumen,
             'nama_file' => $file,

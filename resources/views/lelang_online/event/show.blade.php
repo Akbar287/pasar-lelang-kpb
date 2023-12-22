@@ -30,7 +30,7 @@
                                 <div class="row mb-3 justify-content-center">
                                     <label for="penyelenggara" class="col-md-4 col-form-label text-md-end">{{ __('Penyelenggara')
                                         }}</label>
-            
+
                                     <div class="col-md-6">
                                             <input id="penyelenggara" type="text"
                                                 class="form-control" name="user_id" readonly
@@ -41,7 +41,7 @@
                                 <div class="row mb-3 justify-content-center">
                                     <label for="sesi" class="col-md-4 col-form-label text-md-end">{{ __('Sesi')
                                         }}</label>
-            
+
                                     <div class="col-md-6">
                                             <input id="sesi" type="text" readonly
                                                 class="form-control" name="sesi"
@@ -52,7 +52,7 @@
                                 <div class="row mb-3 justify-content-center">
                                     <label for="tanggal" class="col-md-4 col-form-label text-md-end">{{ __('Tanggal')
                                         }}</label>
-            
+
                                     <div class="col-md-6">
                                             <input id="tanggal" type="date" readonly
                                                 class="form-control" name="tanggal"
@@ -63,7 +63,7 @@
                                 <div class="row mb-3 justify-content-center">
                                     <label for="jam_mulai" class="col-md-4 col-form-label text-md-end">{{ __('Jam Mulai')
                                         }}</label>
-            
+
                                     <div class="col-md-6">
                                             <input id="jam_mulai" type="time" readonly
                                                 class="form-control" name="jam_mulai"
@@ -74,7 +74,7 @@
                                 <div class="row mb-3 justify-content-center">
                                     <label for="jam_berakhir" class="col-md-4 col-form-label text-md-end">{{ __('Jam Selesai')
                                         }}</label>
-            
+
                                     <div class="col-md-6">
                                         <input id="jam_berakhir" type="time" readonly
                                             class="form-control" name="jam_berakhir"

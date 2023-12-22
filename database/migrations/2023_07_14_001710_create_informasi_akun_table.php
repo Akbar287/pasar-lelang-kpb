@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('informasi_akun', function (Blueprint $table) {
             $table->uuid('informasi_akun_id')->primary();
-            $table->string('email', 128);
-            $table->string('no_hp', 32);
-            $table->string('no_wa', 32);
-            $table->string('no_fax', 32);
-            $table->string('avatar', 128);
+            $table->string('email', 128)->nullable();
+            $table->string('no_hp', 32)->nullable();
+            $table->string('no_wa', 32)->nullable();
+            $table->string('no_fax', 32)->nullable();
+            $table->string('avatar', 128)->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

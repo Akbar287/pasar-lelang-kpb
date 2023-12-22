@@ -38,7 +38,7 @@
                             @if($anggota->member()->first()->status_member()->first()->nama_status == 'Tidak Aktif')
                             <div class="badge badge-dark">{{ $anggota->member()->first()->status_member()->first()->nama_status }}</div>
                             @endif
-                        @else 
+                        @else
                             @if($anggota->lembaga()->first()->status_member()->first()->nama_status == 'Aktif')
                             <div class="badge badge-success">{{ $anggota->lembaga()->first()->status_member()->first()->nama_status }}</div>
                             @endif
@@ -60,7 +60,7 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="nama_aset" class="col-md-4 col-form-label text-md-end">{{ __('Jenis Keanggotaan')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <div class="selectgroup w-100">
@@ -69,7 +69,7 @@
                                                 <input type="radio" name="jenis_perseorangan" value="lembaga" class="selectgroup-input" checked>
                                                 <span class="selectgroup-button">Lembaga</span>
                                             </label>
-                                            @else 
+                                            @else
                                             <label class="selectgroup-item">
                                                 <input type="radio" name="jenis_perseorangan" value="perseorangan" class="selectgroup-input" checked>
                                                 <span class="selectgroup-button">Perseorangan</span>
@@ -96,7 +96,7 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="nama_lembaga" class="col-md-4 col-form-label text-md-end">{{ __('Nama Lembaga')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="nama_lembaga" type="text" readonly
                                         class="form-control" name="nama_lembaga"
@@ -108,7 +108,7 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="bidang_usaha" class="col-md-4 col-form-label text-md-end">{{ __('Bidang Usaha')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="bidang_usaha" type="text" readonly
                                         class="form-control" name="bidang_usaha"
@@ -120,7 +120,7 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="npwp_lembaga" class="col-md-4 col-form-label text-md-end">{{ __('NPWP Lembaga')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="npwp_lembaga" type="text" readonly
                                         class="form-control" name="npwp_lembaga"
@@ -132,7 +132,7 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="email_lembaga" class="col-md-4 col-form-label text-md-end">{{ __('Email Lembaga')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="email_lembaga" type="text" readonly
                                         class="form-control" name="email_lembaga"
@@ -145,7 +145,7 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="no_hp_lembaga" class="col-md-4 col-form-label text-md-end">{{ __('Nomor HP / Telepon Lembaga')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
@@ -160,11 +160,11 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="no_wa_lembaga" class="col-md-4 col-form-label text-md-end">{{ __('Nomor Whatsapp Lembaga')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
@@ -179,11 +179,11 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="no_fax_lembaga" class="col-md-4 col-form-label text-md-end">{{ __('Nomor Fax Lembaga')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
@@ -198,11 +198,11 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="username_lembaga" class="col-md-4 col-form-label text-md-end">{{ __('Username Lembaga')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                         <input id="username_lembaga" type="text" readonly
                                             class="form-control " name="username_lembaga"
@@ -224,11 +224,11 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
-                           
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="nik" class="col-md-4 col-form-label text-md-end">{{ __('NIK')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="nik" type="text"
                                         class="form-control" name="nik" readonly
@@ -240,7 +240,7 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="nama" class="col-md-4 col-form-label text-md-end">{{ __('Nama')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="nama" type="text" readonly
                                         class="form-control" name="nama"
@@ -252,26 +252,26 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="jenis_kelamin" class="col-md-4 col-form-label text-md-end">{{ __('Jenis Kelamin')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="jenis_kelamin" type="text" readonly class="form-control" name="jenis_kelamin" value="{{ $anggota->member()->first()->ktp()->first()->jenis_kelamin }}" autocomplete="name" autofocus>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="email" class="col-md-4 col-form-label text-md-end">{{ __('Email')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="email" type="text" readonly
                                         class="form-control @error('email') is-invalid @enderror" name="email" value="{{ $anggota->email }}" autocomplete="name" autofocus>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="tanggal_lahir" class="col-md-4 col-form-label text-md-end">{{ __('Tanggal Lahir')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="tanggal_lahir" type="date" readonly
                                         class="form-control" name="tanggal_lahir"
@@ -283,7 +283,7 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="tempat_lahir" class="col-md-4 col-form-label text-md-end">{{ __('Tempat Lahir')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="tempat_lahir" type="text" readonly
                                         class="form-control" name="tempat_lahir"
@@ -291,11 +291,11 @@
                                         autofocus>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="no_hp" class="col-md-4 col-form-label text-md-end">{{ __('Nomor HP / Telepon')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
@@ -310,11 +310,11 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="no_wa" class="col-md-4 col-form-label text-md-end">{{ __('Nomor Whatsapp')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
@@ -329,11 +329,11 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="no_fax" class="col-md-4 col-form-label text-md-end">{{ __('Nomor Fax')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
@@ -348,11 +348,11 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="username" class="col-md-4 col-form-label text-md-end">{{ __('Username')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                         <input id="username" type="text"
                                             class="form-control" name="username" readonly
@@ -375,7 +375,7 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="pekerjaan" class="col-md-4 col-form-label text-md-end">{{ __('Pekerjaan')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                         <input id="pekerjaan" type="text" readonly
                                             class="form-control" name="pekerjaan"
@@ -387,11 +387,11 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="npwp" class="col-md-4 col-form-label text-md-end">{{ __('NPWP')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="npwp" type="text" readonly
                                         class="form-control @error('npwp') is-invalid @enderror" name="npwp" value="{{ is_null($anggota->member()->first()->informasi_keuangan()->first()->npwp()) ? "Belum ada NPWP" : $anggota->member()->first()->informasi_keuangan()->first()->npwp()->first()->npwp }}" autocomplete="name" autofocus>
-        
+
                                     @error('npwp')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -399,29 +399,29 @@
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="pendapatan_tahunan" class="col-md-4 col-form-label text-md-end">{{ __('Pendapatan Tahunan')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="username" type="text" class="form-control" readonly name="username" value="{{ $anggota->member()->first()->informasi_keuangan()->first()->pendapatan_tahunan }}" autocomplete="name" autofocus>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="kekayaan_bersih" class="col-md-4 col-form-label text-md-end">{{ __('Kekayaan Bersih')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="kekayaan_bersih" type="text" readonly class="form-control" name="kekayaan_bersih" value="Rp. {{ number_format($anggota->member()->first()->informasi_keuangan()->first()->kekayaan_bersih, 2, ".", ",") }}" autocomplete="name" autofocus>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="kekayaan_lancar" class="col-md-4 col-form-label text-md-end">{{ __('Kekayaan Lancar')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                         <input id="kekayaan_lancar" type="text" readonly
                                             class="form-control" name="kekayaan_lancar"
@@ -429,13 +429,78 @@
                                             autofocus>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="sumber_dana" class="col-md-4 col-form-label text-md-end">{{ __('Sumber Dana')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="username" type="text" class="form-control" readonly name="username" value="{{ $anggota->member()->first()->informasi_keuangan()->first()->sumber_dana }}" autocomplete="name" autofocus>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            @if(!is_null($anggota->jaminan()->first()))
+            <div class="card">
+                <div class="card-header">
+                    <h4>{{ __('Jaminan Lelang') }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="row mb-3 justify-content-center">
+                                <label for="total_saldo_jaminan" class="col-md-4 col-form-label text-md-end">{{ __('Total Saldo Jaminan')
+                                    }}</label>
+
+                                <div class="col-md-6">
+                                    <div class="input-group mb-6">
+                                        <div class="input-group-prepend">
+                                            <div class="input-group-text">
+                                                Rp
+                                            </div>
+                                        </div>
+                                        <input id="total_saldo_jaminan" type="text" readonly
+                                            class="form-control thousand-style" name="total_saldo_jaminan"
+                                            value="{{ !is_null($anggota->jaminan()->first()->total_saldo_jaminan) ? number_format($anggota->jaminan()->first()->total_saldo_jaminan, 0, ".", ",") : 0 }}" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-3 justify-content-center">
+                                <label for="saldo_teralokasi" class="col-md-4 col-form-label text-md-end">{{ __('Saldo Jaminan Terpakai')
+                                    }}</label>
+
+                                <div class="col-md-6">
+                                    <div class="input-group mb-6">
+                                        <div class="input-group-prepend">
+                                            <div class="input-group-text">
+                                                Rp
+                                            </div>
+                                        </div>
+                                        <input id="saldo_teralokasi" type="text" readonly
+                                            class="form-control thousand-style" name="saldo_teralokasi"
+                                            value="{{ !is_null($anggota->jaminan()->first()->saldo_teralokasi) ? number_format($anggota->jaminan()->first()->saldo_teralokasi, 0, ".", ",") : 0 }}" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-3 justify-content-center">
+                                <label for="saldo_tersedia" class="col-md-4 col-form-label text-md-end">{{ __('Saldo Jaminan Tersedia')
+                                    }}</label>
+
+                                <div class="col-md-6">
+                                    <div class="input-group mb-6">
+                                        <div class="input-group-prepend">
+                                            <div class="input-group-text">
+                                                Rp
+                                            </div>
+                                        </div>
+                                        <input id="saldo_tersedia" type="text" readonly
+                                            class="form-control thousand-style" name="saldo_tersedia"
+                                            value="{{ !is_null($anggota->jaminan()->first()->saldo_tersedia) ? number_format($anggota->jaminan()->first()->saldo_tersedia, 0, ".", ",") : 0 }}" />
+                                    </div>
                                 </div>
                             </div>
                         </div>

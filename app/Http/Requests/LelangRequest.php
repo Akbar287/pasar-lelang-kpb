@@ -26,7 +26,6 @@ class LelangRequest extends FormRequest
             'jenis_inisiasi_id' => ['required'],
             'jenis_harga_id' => ['required'],
             'kontrak_id' => ['required'],
-            'nomor_lelang' => ['required', 'max:32'],
             'asal_komoditas' => ['required', 'max:128'],
             'spesifikasi_produk' => ['required'],
             'kuantitas' => ['required'],

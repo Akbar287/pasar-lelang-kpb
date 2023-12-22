@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\InformasiAkun;
+use App\Models\StatusMember;
 use App\Providers\RouteServiceProvider;
 use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
@@ -50,9 +52,15 @@ class RegisterController extends Controller
     protected function validator(array $data)
     {
         return Validator::make($data, [
-            'name' => ['required', 'string', 'max:255'],
+            'ktp' => ['required', 'string', 'max:16'],
+            'nama' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'no_hp' => ['required', 'string', 'min:8', 'max:16'],
+            'tempat_lahir' => ['required', 'string', 'max:255'],
+            'tanggal_lahir' => ['required', 'date'],
+            'jenis_kelamin' => ['required', 'string'],
+            'username' => ['required', 'string', 'min:6', 'max:16'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
         ]);
     }
 
@@ -64,10 +72,32 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        return User::create([
-            'name' => $data['name'],
+        $informasi_akun = InformasiAkun::create([
             'email' => $data['email'],
+            'no_hp' => $data['no_hp'],
+            'no_wa' => '0',
+            'no_fax' => '0',
+            'avatar' => 'default.png'
+        ]);
+
+        $statusMember = StatusMember::where('nama_status', 'Calon Anggota')->first();
+        $member = $informasi_akun->member()->create([
+            'status_member_id' => $statusMember->status_member_id
+        ]);
+
+        $member->ktp()->create([
+            'nik' => $data['ktp'],
+            'nama' => $data['nama'],
+            'jenis_kelamin' => $data['jenis_kelamin'],
+            'tempat_lahir' => $data['tempat_lahir'],
+            'tanggal_lahir' => $data['tanggal_lahir'],
+            'verified' => true
+        ]);
+
+        return $informasi_akun->userlogin()->create([
+            'username' => $data['username'],
             'password' => Hash::make($data['password']),
+            'is_aktif' => true,
         ]);
     }
 }

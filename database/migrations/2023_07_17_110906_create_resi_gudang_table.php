@@ -18,12 +18,12 @@ return new class extends Migration
             $table->string('pemilik_barang', 128);
             $table->string('pemegang_resi_gudang', 128);
             $table->string('no_penerbitan', 64);
-            $table->string('nama_komoditas', 128);
-            $table->decimal('nilai_komoditas', 18, 2);
+            $table->string('nama_resi_gudang', 128);
+            $table->decimal('nilai_resi_gudang', 18, 2);
             $table->decimal('haircut', 18, 2);
             $table->decimal('nilai_tersedia', 18, 2);
-            $table->decimal('tanggal_penerbitan', 18, 2);
-            $table->decimal('tanggal_jatuh_tempo', 18, 2);
+            $table->date('tanggal_penerbitan', 18, 2);
+            $table->date('tanggal_jatuh_tempo', 18, 2);
 
             $table->foreign('surat_berharga_id')->references('surat_berharga_id')->on('surat_berharga')->cascadeOnDelete();
         });

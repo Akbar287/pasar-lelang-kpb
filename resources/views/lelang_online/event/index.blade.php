@@ -22,6 +22,11 @@
             <div class="card">
                 <div class="card-header">
                     <h4>{{ __('Event Lelang Online') }}</h4>
+                    <div class="card-header-action">
+                        <a href="{{ route('online.event.history') }}" class="btn btn-info">
+                            Riwayat
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -32,6 +37,9 @@
                                     <th>Tanggal</th>
                                     <th>Sesi</th>
                                     <th>Produk Lelang</th>
+                                    <th>Harga Awal</th>
+                                    <th>Kelipatan Harga</th>
+                                    <th>Peserta</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>

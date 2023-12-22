@@ -240,6 +240,7 @@
                                     <div class="col-md-6 offset-md-4 d-flex align-items-end">
                                         <a type="button" href="{{ route('administrasi.kas_bank.penerimaan.index') }}" class="btn btn-primary mr-2"><i class="fas fa-arrow-left"></i> Kembali</a>
                                         <a type="button" href="{{ route('administrasi.kas_bank.penerimaan.edit', $keuangan->keuangan_id) }}" class="btn mx-2 btn-success"><i class="fas fa-pen"></i> Ubah</a>
+                                        <a type="button" href="{{ route('administrasi.kas_bank.penerimaan.file.index', $keuangan->keuangan_id) }}" class="btn mr-2 btn-info"><i class="fas fa-pen"></i> File</a>
                                         <form action="{{ route('administrasi.kas_bank.penerimaan.destroy', $keuangan->keuangan_id) }}" method="POST">@csrf @method('delete')
                                             <button type="submit" onclick="return confirm('Keuangan akan dihapus!\n Lanjutkan?')" title="Hapus Data" class="btn btn-danger"><i class="fas fa-trash"></i> Hapus</button>
                                         </form>

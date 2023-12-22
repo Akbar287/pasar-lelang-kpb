@@ -10,8 +10,8 @@ class KomoditasMasuk extends Model
 {
     use HasFactory;
     public $timestamps = false;
-    protected $table = 'keuangan_masuk';
-    protected $primaryKey = 'keuangan_masuk_id';
+    protected $table = 'komoditas_masuk';
+    protected $primaryKey = 'komoditas_masuk_id';
     public $incrementing = false;
     protected $keyType = 'string';
     protected static function boot()

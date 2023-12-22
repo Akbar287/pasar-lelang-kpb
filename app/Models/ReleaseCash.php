@@ -25,10 +25,6 @@ class ReleaseCash extends Model
 
     protected $fillable = [
         'pengeluaran_jaminan_id',
-        'dokumen_settlement_id',
-        'jaminan_tersedia',
-        'jaminan_terpakai',
-        'total_jaminan',
         'jumlah',
     ];
 
@@ -39,6 +35,6 @@ class ReleaseCash extends Model
 
     public function dokumen_settlement()
     {
-        return $this->belongsTo(DokumenSettlement::class, 'dokumen_settlement_id', 'dokumen_settlement_id');
+        return $this->belongsToMany(DokumenSettlement::class, 'release_cash_dokumen_settlement', 'release_cash_id', 'dokumen_settlement_id');
     }
 }

@@ -23,6 +23,7 @@ class OfflineProfile extends Model
         });
     }
     protected $fillable = [
+        'penyelenggara_pasar_lelang_id',
         'registrasi_id',
         'nama_profile',
         'is_open',
@@ -33,6 +34,11 @@ class OfflineProfile extends Model
     public function event_lelang()
     {
         return $this->hasMany(EventLelang::class, 'offline_profile_id', 'offline_profile_id');
+    }
+
+    public function penyelenggara_pasar_lelang()
+    {
+        return $this->belongsTo(PenyelenggaraPasarLelang::class, 'penyelenggara_pasar_lelang_id', 'penyelenggara_pasar_lelang_id');
     }
 
     public function operator_pasar_lelang()

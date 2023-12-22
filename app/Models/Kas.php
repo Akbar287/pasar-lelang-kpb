@@ -36,4 +36,9 @@ class Kas extends Model
     {
         return $this->belongsTo(DetailJaminan::class, 'detail_jaminan_id', 'detail_jaminan_id');
     }
+
+    public function kurs_mata_uang()
+    {
+        return $this->belongsTo(KursMataUang::class, 'kurs_mata_uang_id', 'kurs_mata_uang_id');
+    }
 }

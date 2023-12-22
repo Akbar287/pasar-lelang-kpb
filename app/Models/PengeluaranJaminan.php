@@ -28,6 +28,9 @@ class PengeluaranJaminan extends Model
         'jenis_pengeluaran_jaminan_id',
         'kode_transaksi',
         'tanggal',
+        'is_aktif',
+        'jumlah',
+        'keterangan',
     ];
 
     public function jaminan()
@@ -50,8 +53,18 @@ class PengeluaranJaminan extends Model
         return $this->hasOne(ReturnCash::class, 'pengeluaran_jaminan_id', 'pengeluaran_jaminan_id');
     }
 
+    public function jaminan_komoditas()
+    {
+        return $this->hasMany(JaminanKomoditas::class, 'pengeluaran_jaminan_id', 'pengeluaran_jaminan_id');
+    }
+
     public function jaminan_lelang()
     {
         return $this->hasOne(JaminanLelang::class, 'pengeluaran_jaminan_id', 'pengeluaran_jaminan_id');
+    }
+
+    public function verified_log()
+    {
+        return $this->belongsToMany(VerifiedLog::class, 'pengeluaran_jaminan_verified_log', 'pengeluaran_jaminan_id', 'verified_log_id');
     }
 }

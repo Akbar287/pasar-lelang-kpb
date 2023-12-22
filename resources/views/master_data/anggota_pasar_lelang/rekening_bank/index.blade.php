@@ -39,6 +39,7 @@
                                     <th>Nama Pemilik</th>
                                     <th>Cabang</th>
                                     <th>Mata Uang</th>
+                                    <th>Saldo</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>

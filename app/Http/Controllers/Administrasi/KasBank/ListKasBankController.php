@@ -4,7 +4,12 @@ namespace App\Http\Controllers\Administrasi\KasBank;
 
 use App\Http\Controllers\Controller;
 use App\Models\Keuangan;
+use App\Models\Userlogin;
 use Illuminate\Http\Request;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Yajra\DataTables\DataTables;
 
 class ListKasBankController extends Controller
@@ -54,5 +59,51 @@ class ListKasBankController extends Controller
     public function show(Keuangan $keuangan)
     {
         return view('administrasi/kas_bank/list/show', compact('keuangan'));
+    }
+
+    public function getKeuanganSaldo()
+    {
+        try {
+            $token = JWTAuth::getToken();
+            $apy = JWTAuth::getPayload($token)->toArray();
+
+            $user = Userlogin::where('userlogin_id', $apy['sub'])->first();
+            $saldo = 0;
+
+            $total = $user->informasi_akun()->first()->rekening_bank()->select('rekening_bank_id')->addSelect('nomor_rekening')->addSelect('saldo')->addSelect('nama_pemilik')->addSelect('cabang')->get();
+            foreach ($user->informasi_akun()->first()->rekening_bank()->get() as $rb) {
+                $saldo += $rb->saldo;
+            }
+
+            return response()->json([
+                'data' => [
+                    'saldo' => $saldo,
+                    'rekening_bank' => $total
+                ],
+                'message' => 'saldo rekening bank has been catched',
+                'status' => 'success'
+            ], 200);
+        } catch (TokenExpiredException $e) {
+            return response()->json([
+                'data' => [],
+                'message' => 'token_expired: ' . $e->getMessage(),
+                'status' => 'error'
+            ], 500);
+            exit;
+        } catch (TokenInvalidException $e) {
+            return response()->json([
+                'data' => [],
+                'message' => 'token_invalid: ' . $e->getMessage(),
+                'status' => 'error'
+            ], 500);
+            exit;
+        } catch (JWTException $e) {
+            return response()->json([
+                'data' => [],
+                'message' => 'token_absent: ' . $e->getMessage(),
+                'status' => 'error'
+            ], 500);
+            exit;
+        }
     }
 }

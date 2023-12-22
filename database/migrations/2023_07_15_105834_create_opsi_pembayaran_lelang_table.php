@@ -18,7 +18,7 @@ return new class extends Migration
             $table->uuid('jenis_opsi_pembayaran_lelang_id');
             $table->enum('jenis_informasi_akun', ['seller', 'buyer']);
             $table->decimal('tagihan', 18, 2);
-            $table->decimal('biaya_lain_lain_penjual', 18, 2);
+            $table->decimal('biaya_lain_lain', 18, 2);
             $table->decimal('penyelesaian', 18, 2);
 
             $table->foreign('informasi_akun_id')->references('informasi_akun_id')->on('informasi_akun')->cascadeOnDelete();

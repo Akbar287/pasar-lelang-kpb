@@ -7,8 +7,7 @@
         <div class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></div>
         <div class="breadcrumb-item"><a href="{{ route('administrasi') }}">Administrasi</a></div>
         <div class="breadcrumb-item"><a href="{{ route('administrasi.kas_bank') }}">Kas Bank</a></div>
-        <div class="breadcrumb-item"><a href="{{ route('administrasi.kas_bank.penerimaan.index') }}">Penerimaan</a></div>
-        <div class="breadcrumb-item">Kas Bank</div>
+        <div class="breadcrumb-item">Penerimaan</div>
     </div>
 </div>
 <div class="section-body">

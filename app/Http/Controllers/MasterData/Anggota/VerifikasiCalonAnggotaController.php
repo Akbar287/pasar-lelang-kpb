@@ -84,6 +84,14 @@ class VerifikasiCalonAnggotaController extends Controller
         $verified->keterangan = $request->keterangan;
         $verified->save();
 
+        if (is_null($calon->jaminan()->first())) {
+            $calon->jaminan()->create([
+                'total_saldo_jaminan' => 0,
+                'saldo_teralokasi' => 0,
+                'saldo_tersedia' => 0,
+            ]);
+        }
+
         if (!is_null($calon->member()->first())) {
             $calon->member()->first()->update([
                 'status_member_id' => $statusMember->status_member_id

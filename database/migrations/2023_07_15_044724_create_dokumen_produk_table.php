@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('dokumen_produk', function (Blueprint $table) {
             $table->uuid('dokumen_produk_id')->primary();
+            $table->uuid('jenis_dokumen_produk_id');
             $table->uuid('lelang_id');
             $table->text('keterangan')->nullable();
             $table->string('nama_dokumen', 128);
@@ -20,6 +21,7 @@ return new class extends Migration
             $table->date('tanggal_upload');
             $table->boolean('is_gambar_utama');
 
+            $table->foreign('jenis_dokumen_produk_id')->references('jenis_dokumen_produk_id')->on('jenis_dokumen_produk')->cascadeOnDelete();
             $table->foreign('lelang_id')->references('lelang_id')->on('lelang')->cascadeOnDelete();
         });
     }

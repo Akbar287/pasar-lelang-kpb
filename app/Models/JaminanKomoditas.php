@@ -25,10 +25,7 @@ class JaminanKomoditas extends Model
 
     protected $fillable = [
         'pengeluaran_jaminan_id',
-        'dokumen_settlement_id',
-        'qty_jaminan',
-        'nilai_jaminan',
-        'komoditi',
+        'registrasi_komoditas_jaminan_id',
         'qty_settlement',
         'alokasi_settlement',
     ];
@@ -40,6 +37,11 @@ class JaminanKomoditas extends Model
 
     public function dokumen_settlement()
     {
-        return $this->belongsTo(DokumenSettlement::class, 'dokumen_settlement_id', 'dokumen_settlement_id');
+        return $this->belongsToMany(DokumenSettlement::class, 'jaminan_komoditas_dokumen_settlement', 'jaminan_komoditas_id', 'dokumen_settlement_id');
+    }
+
+    public function registrasi_komoditas_jaminan()
+    {
+        return $this->belongsTo(RegistrasikomoditasJaminan::class, 'registrasi_komoditas_jaminan_id', 'registrasi_komoditas_jaminan_id');
     }
 }

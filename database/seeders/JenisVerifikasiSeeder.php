@@ -49,6 +49,22 @@ class JenisVerifikasiSeeder extends Seeder
                     "nama_verifikasi" => "Verifikasi Keuangan",
                     "keterangan" => "Verifikasi Keuangan"
                 ],
+                [
+                    "nama_verifikasi" => "Verifikasi Gudang",
+                    "keterangan" => "Verifikasi Gudang"
+                ],
+                [
+                    "nama_verifikasi" => "Verifikasi Jaminan Penerimaan",
+                    "keterangan" => "Verifikasi Jaminan Penerimaan"
+                ],
+                [
+                    "nama_verifikasi" => "Verifikasi Jaminan Pengeluaran",
+                    "keterangan" => "Verifikasi Jaminan Pengeluaran"
+                ],
+                [
+                    "nama_verifikasi" => "Verifikasi Transaksi Lelang",
+                    "keterangan" => "Verifikasi Transaksi Lelang"
+                ],
             ];
 
             foreach ($temp as $t) {

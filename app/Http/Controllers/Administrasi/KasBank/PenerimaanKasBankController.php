@@ -4,17 +4,30 @@ namespace App\Http\Controllers\Administrasi\KasBank;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
+use App\Models\FileKeuangan;
 use App\Models\JenisTransaksi;
 use App\Models\Keuangan;
 use App\Models\KursMataUang;
 use App\Models\Member;
 use App\Models\RekeningBank;
 use App\Models\StatusMember;
+use App\Models\Userlogin;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Yajra\DataTables\DataTables;
 
 class PenerimaanKasBankController extends Controller
 {
+    public function __construct()
+    {
+        date_default_timezone_set('Asia/Jakarta');
+    }
     /**
      * Display a listing of the resource.
      */
@@ -326,5 +339,430 @@ class PenerimaanKasBankController extends Controller
         $keuangan->delete();
 
         return redirect('/administrasi/kas_bank/penerimaan')->with('msg', '<div class="alert alert-success alert-dismissible fade show" role="alert"><strong>Sukses!</strong> Data Keuangan sudah dihapus.<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+    }
+
+    function api_get_keuangan_history(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'jenis_transaksi_id' => ['required']
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'data' => [],
+                'status' => 'error',
+                'message' => $validator->errors()
+            ], 400);
+            exit;
+        } else {
+            try {
+                $token = JWTAuth::getToken();
+                $apy = JWTAuth::getPayload($token)->toArray();
+
+                $user = Userlogin::where('userlogin_id', $apy['sub'])->first();
+                $rb = $user->informasi_akun()->first()->rekening_bank()->select('rekening_bank_id')->get()->toArray();
+                $jenisTransaksi = JenisTransaksi::where('jenis_transaksi_id', $request->jenis_transaksi_id)->first();
+                $temp = [];
+                foreach ($rb as $r) {
+                    $temp[] = $r['rekening_bank_id'];
+                }
+
+                $page = $request->get('page') ?? 0;
+                $size = $request->get('size') ?? 5;
+                $total = Keuangan::whereIn('rekening_bank_id', $rb)->where('jenis_transaksi_id', $jenisTransaksi->jenis_transaksi_id)->count();
+
+                $page_count = ceil($total / $size);
+
+                $data = DB::Table('keuangan')
+                    ->whereIn('rekening_bank_id', $rb)->where('jenis_transaksi_id', $jenisTransaksi->jenis_transaksi_id)
+                    ->orderBy('created_at', 'desc')
+                    ->forPage($page, $size)
+                    ->get();
+
+                if ($total != 0 || $page_count != 0) {
+                    $paginator = new LengthAwarePaginator($data, $total, $page_count, $page);
+
+                    return response()->json([
+                        'data' => $paginator,
+                        'message' => 'data keuangan history has been catched',
+                        'status' => 'success'
+                    ], 200);
+                } else {
+                    return response()->json([
+                        'data' => [],
+                        'message' => 'data keuangan history has been catched',
+                        'status' => 'success'
+                    ], 200);
+                }
+            } catch (TokenExpiredException $e) {
+                return response()->json([
+                    'data' => [],
+                    'message' => 'token_expired: ' . $e->getMessage(),
+                    'status' => 'error'
+                ], 500);
+                exit;
+            } catch (TokenInvalidException $e) {
+                return response()->json([
+                    'data' => [],
+                    'message' => 'token_invalid: ' . $e->getMessage(),
+                    'status' => 'error'
+                ], 500);
+                exit;
+            } catch (JWTException $e) {
+                return response()->json([
+                    'data' => [],
+                    'message' => 'token_absent: ' . $e->getMessage(),
+                    'status' => 'error'
+                ], 500);
+                exit;
+            }
+        }
+    }
+
+    function api_kurs_mata_uang(Request $request)
+    {
+        $page = $request->get('page') ?? 0;
+        $size = $request->get('size') ?? 5;
+        $total = KursMataUang::count();
+
+        $page_count = ceil($total / $size);
+
+        $data = DB::Table('kurs_mata_uang')
+            ->orderBy('tanggal_update', 'desc')
+            ->forPage($page, $size)
+            ->get();
+
+        if ($total != 0 || $page_count != 0) {
+            $paginator = new LengthAwarePaginator($data, $total, $page_count, $page);
+
+            return response()->json([
+                'data' => $paginator,
+                'message' => 'data kurs mata uang has been catched',
+                'status' => 'success'
+            ], 200);
+        } else {
+            return response()->json([
+                'data' => [],
+                'message' => 'data kurs mata uang has been catched',
+                'status' => 'success'
+            ], 200);
+        }
+    }
+
+    function api_get_deposit_history(Request $request)
+    {
+        try {
+            $token = JWTAuth::getToken();
+            $apy = JWTAuth::getPayload($token)->toArray();
+
+            $user = Userlogin::where('userlogin_id', $apy['sub'])->first();
+            $rb = $user->informasi_akun()->first()->rekening_bank()->select('rekening_bank_id')->get()->toArray();
+            $jenisTransaksi = JenisTransaksi::where('nama_jenis', 'Cash / Bank In (Non-Trading)')->first();
+            $temp = [];
+            foreach ($rb as $r) {
+                $temp[] = $r['rekening_bank_id'];
+            }
+
+            $page = $request->get('page') ?? 0;
+            $size = $request->get('size') ?? 5;
+            $total = Keuangan::leftJoin('keuangan_verified_log', 'keuangan_verified_log.keuangan_id', 'keuangan.keuangan_id')->whereIn('rekening_bank_id', $rb)->where('jenis_transaksi_id', $jenisTransaksi->jenis_transaksi_id)->count();
+
+            $page_count = ceil($total / $size);
+
+            $data = DB::Table('keuangan')
+                ->leftJoin('keuangan_verified_log', 'keuangan_verified_log.keuangan_id', 'keuangan.keuangan_id')
+                ->whereIn('rekening_bank_id', $rb)->where('jenis_transaksi_id', $jenisTransaksi->jenis_transaksi_id)
+                ->orderBy('created_at', 'desc')
+                ->forPage($page, $size)
+                ->get();
+
+            if ($total != 0 || $page_count != 0) {
+                $paginator = new LengthAwarePaginator($data, $total, $page_count, $page);
+
+                return response()->json([
+                    'data' => $paginator,
+                    'message' => 'data deposit history has been catched',
+                    'status' => 'success'
+                ], 200);
+            } else {
+                return response()->json([
+                    'data' => [],
+                    'message' => 'data deposit history has been catched',
+                    'status' => 'success'
+                ], 200);
+            }
+        } catch (TokenExpiredException $e) {
+            return response()->json([
+                'data' => [],
+                'message' => 'token_expired: ' . $e->getMessage(),
+                'status' => 'error'
+            ], 500);
+            exit;
+        } catch (TokenInvalidException $e) {
+            return response()->json([
+                'data' => [],
+                'message' => 'token_invalid: ' . $e->getMessage(),
+                'status' => 'error'
+            ], 500);
+            exit;
+        } catch (JWTException $e) {
+            return response()->json([
+                'data' => [],
+                'message' => 'token_absent: ' . $e->getMessage(),
+                'status' => 'error'
+            ], 500);
+            exit;
+        }
+    }
+
+    function api_deposit_dana(Request $request)
+    {
+        $request->validate([
+            'rekening_bank_id' => ['required'],
+            'kurs_mata_uang_id' => ['required'],
+            'jumlah' => ['required'],
+            'saldo_belum_teralokasi' => ['required']
+        ]);
+
+        $rekeningBank = RekeningBank::where('rekening_bank_id', $request->rekening_bank_id)->first();
+        $jenisTransaksi = JenisTransaksi::where('nama_jenis', 'Cash / Bank In (Non-Trading)')->first();
+
+        $keuangan = $rekeningBank->keuangan()->create([
+            'jenis_transaksi_id' => $jenisTransaksi->jenis_transaksi_id,
+            'kurs_mata_uang_id' => $request->kurs_mata_uang_id,
+            'jumlah' => str_replace(',', '', $request->jumlah),
+            'keterangan' => $request->keterangan,
+        ]);
+
+        $keuangan->keuangan_cash_non_trading()->create([
+            'saldo_belum_teralokasi' => str_replace(',', '', $request->saldo_belum_teralokasi)
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $keuangan,
+            'message' => 'deposit berhasil, menunggu verifikasi admin',
+        ], 200);
+        exit;
+    }
+
+    function api_get_withdraw_history(Request $request)
+    {
+        try {
+            $token = JWTAuth::getToken();
+            $apy = JWTAuth::getPayload($token)->toArray();
+
+            $user = Userlogin::where('userlogin_id', $apy['sub'])->first();
+            $rb = $user->informasi_akun()->first()->rekening_bank()->select('rekening_bank_id')->get()->toArray();
+            $jenisTransaksi = JenisTransaksi::where('nama_jenis', 'Cash / Bank Out (Pembayaran Fee)')->first();
+            $temp = [];
+            foreach ($rb as $r) {
+                $temp[] = $r['rekening_bank_id'];
+            }
+
+            $page = $request->get('page') ?? 0;
+            $size = $request->get('size') ?? 5;
+            $total = Keuangan::leftJoin('keuangan_verified_log', 'keuangan_verified_log.keuangan_id', 'keuangan.keuangan_id')->whereIn('rekening_bank_id', $rb)->where('jenis_transaksi_id', $jenisTransaksi->jenis_transaksi_id)->count();
+
+            $page_count = ceil($total / $size);
+
+            $data = DB::Table('keuangan')
+                ->leftJoin('keuangan_verified_log', 'keuangan_verified_log.keuangan_id', 'keuangan.keuangan_id')
+                ->whereIn('rekening_bank_id', $rb)->where('jenis_transaksi_id', $jenisTransaksi->jenis_transaksi_id)
+                ->orderBy('created_at', 'desc')
+                ->forPage($page, $size)
+                ->get();
+
+            if ($total != 0 || $page_count != 0) {
+                $paginator = new LengthAwarePaginator($data, $total, $page_count, $page);
+
+                return response()->json([
+                    'data' => $paginator,
+                    'message' => 'data deposit history has been catched',
+                    'status' => 'success'
+                ], 200);
+            } else {
+                return response()->json([
+                    'data' => [],
+                    'message' => 'data deposit history has been catched',
+                    'status' => 'success'
+                ], 200);
+            }
+        } catch (TokenExpiredException $e) {
+            return response()->json([
+                'data' => [],
+                'message' => 'token_expired: ' . $e->getMessage(),
+                'status' => 'error'
+            ], 500);
+            exit;
+        } catch (TokenInvalidException $e) {
+            return response()->json([
+                'data' => [],
+                'message' => 'token_invalid: ' . $e->getMessage(),
+                'status' => 'error'
+            ], 500);
+            exit;
+        } catch (JWTException $e) {
+            return response()->json([
+                'data' => [],
+                'message' => 'token_absent: ' . $e->getMessage(),
+                'status' => 'error'
+            ], 500);
+            exit;
+        }
+    }
+
+    function api_withdraw_dana(Request $request)
+    {
+        $request->validate([
+            'rekening_bank_id' => ['required'],
+            'kurs_mata_uang_id' => ['required'],
+            'jumlah' => ['required'],
+        ]);
+
+        $rekeningBank = RekeningBank::where('rekening_bank_id', $request->rekening_bank_id)->first();
+        $jenisTransaksi = JenisTransaksi::where('nama_jenis', 'Cash / Bank Out (Pembayaran Fee)')->first();
+
+        $keuangan = $rekeningBank->keuangan()->create([
+            'jenis_transaksi_id' => $jenisTransaksi->jenis_transaksi_id,
+            'kurs_mata_uang_id' => $request->kurs_mata_uang_id,
+            'jumlah' => str_replace(',', '', $request->jumlah),
+            'keterangan' => $request->keterangan,
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $keuangan,
+            'message' => 'withdraw berhasil, menunggu verifikasi admin',
+        ], 200);
+        exit;
+    }
+
+    public function api_jenis_transaksi(Request $request)
+    {
+        $page = $request->get('page') ?? 0;
+        $size = $request->get('size') ?? 5;
+        $total = JenisTransaksi::count();
+
+        $page_count = ceil($total / $size);
+
+        $data = DB::Table('jenis_transaksi')
+            ->orderBy('nama_jenis', 'asc')
+            ->forPage($page, $size)
+            ->get();
+
+        if ($total != 0 || $page_count != 0) {
+            $paginator = new LengthAwarePaginator($data, $total, $page_count, $page);
+
+            return response()->json([
+                'data' => $paginator,
+                'message' => 'data jenis transaksi has been catched',
+                'status' => 'success'
+            ], 200);
+        } else {
+            return response()->json([
+                'data' => [],
+                'message' => 'data jenis transaksi has been catched',
+                'status' => 'success'
+            ], 200);
+        }
+    }
+
+    public function api_deposit_dokumen_dana(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'keuangan_id' => ['required']
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'data' => [],
+                'status' => 'error',
+                'message' => $validator->errors()
+            ], 400);
+            exit;
+        } else {
+            $keuangan = Keuangan::where('keuangan_id', $request->keuangan_id)->first();
+
+            if (is_null($keuangan)) {
+                return response()->json([
+                    'data' => [],
+                    'status' => 'error',
+                    'message' => 'keuangan not found'
+                ], 404);
+            } else {
+                if ($request->file()) {
+                    $foto = 'default.png';
+                    if ($request->hasFile('gambar')) {
+                        $filenameWithExt = $request->file('gambar')->getClientOriginalName();
+                        $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
+                        $extension = $request->file('gambar')->getClientOriginalExtension();
+                        $foto = $filename . '_' . time() . '.' . $extension;
+                        $request->file('gambar')->storeAs('public/dokumen_keuangan', $foto);
+                    }
+
+                    $fileKeuangan = FileKeuangan::create([
+                        'keuangan_id' => $request->keuangan_id,
+                        'nama_file' => $foto,
+                        'nama_dokumen' => $filenameWithExt,
+                        'tanggal_upload' => date('Y-m-d')
+                    ]);
+                    return response()->json([
+                        'data' => $fileKeuangan,
+                        'status' => 'success',
+                        'message' => 'file keuangan has been uploaded'
+                    ], 200);
+                } else {
+                    return response()->json([
+                        'data' => [],
+                        'status' => 'error',
+                        'message' => 'file missing'
+                    ], 404);
+                }
+            }
+        }
+    }
+    public function api_get_deposit_dokumen_history(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'keuangan_id' => ['required']
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'data' => [],
+                'status' => 'error',
+                'message' => $validator->errors()
+            ], 400);
+            exit;
+        } else {
+            $page = $request->get('page') ?? 0;
+            $size = $request->get('size') ?? 5;
+            $total = Keuangan::where('keuangan_id', $request->keuangan_id)->first()->file_keuangan()->count();
+
+            $page_count = ceil($total / $size);
+
+            $data = DB::Table('file_keuangan')
+                ->where('keuangan_id', $request->keuangan_id)
+                ->orderBy('tanggal_upload', 'desc')
+                ->forPage($page, $size)
+                ->get();
+
+            if ($total != 0 || $page_count != 0) {
+                $paginator = new LengthAwarePaginator($data, $total, $page_count, $page);
+
+                return response()->json([
+                    'data' => $paginator,
+                    'message' => 'data dokumen deposit has been catched',
+                    'status' => 'success'
+                ], 200);
+            } else {
+                return response()->json([
+                    'data' => [],
+                    'message' => 'data dokumen deposit has been catched',
+                    'status' => 'success'
+                ], 200);
+            }
+        }
     }
 }

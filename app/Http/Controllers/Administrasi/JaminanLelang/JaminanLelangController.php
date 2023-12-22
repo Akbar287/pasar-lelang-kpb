@@ -16,40 +16,40 @@ class JaminanLelangController extends Controller
             [
                 "nama" => "Penerimaan Jaminan Lelang",
                 "icon" => "th",
-                "url" => route('anggota.index'),
+                "url" => route('administrasi.jaminan.penerimaan.index'),
                 "color" => "primary"
             ],
             [
                 "nama" => "Verifikasi Penerimaan Jaminan",
                 "icon" => "filter",
-                "url" => route('menu.procurement'),
+                "url" => route('administrasi.jaminan.penerimaan.verifikasi.index'),
                 "color" => "secondary"
             ],
             [
-                "nama" => "Daftar Penerimaan Jaminan",
+                "nama" => "List Penerimaan Jaminan",
                 "icon" => "tint",
-                "url" => route('fasilitas.index'),
+                "url" => route('administrasi.jaminan.penerimaan.list.index'),
                 "color" => "success"
             ],
             [
                 "nama" => "Pengeluaran Jaminan Lelang",
                 "icon" => "th",
-                "url" => route('anggota.index'),
-                "color" => "primary"
+                "url" => route('administrasi.jaminan.pengeluaran.index'),
+                "color" => "danger"
             ],
             [
                 "nama" => "Verifikasi Pengeluaran Jaminan",
                 "icon" => "filter",
-                "url" => route('menu.procurement'),
-                "color" => "secondary"
+                "url" => route('administrasi.jaminan.pengeluaran.verifikasi.index'),
+                "color" => "warning"
             ],
             [
-                "nama" => "Daftar Pengeluaran Jaminan",
+                "nama" => "List Pengeluaran Jaminan",
                 "icon" => "tint",
-                "url" => route('fasilitas.index'),
-                "color" => "success"
-            ],
+                "url" => route('administrasi.jaminan.pengeluaran.list.index'),
+                "color" => "info"
+            ]
         ];
-        return view('administrasi/jaminan_lelang/index', compact('allMenu'));
+        return view('administrasi/jaminan/index', compact('allMenu'));
     }
 }

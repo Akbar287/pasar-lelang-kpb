@@ -11,7 +11,15 @@ use App\Models\Kontrak;
 use App\Models\Mutu;
 use App\Models\PenyelenggaraPasarLelang;
 use App\Models\StatusKontrak;
+use App\Models\Userlogin;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Yajra\DataTables\DataTables;
 
 class ListKontrakController extends Controller
@@ -138,5 +146,99 @@ class ListKontrakController extends Controller
             'fee_penjual' => str_replace(',', '', request('fee_penjual')),
             'fee_pembeli' => str_replace(',', '', request('fee_pembeli')),
         ];
+    }
+
+    public function api_index_all(Request $request)
+    {
+        try {
+            $token = JWTAuth::getToken();
+            $apy = JWTAuth::getPayload($token)->toArray();
+
+            $user = Userlogin::where('userlogin_id', $apy['sub'])->first();
+
+            $status = $request->has('status') ? StatusKontrak::select('status_kontrak_id')->whereIn('nama_status', explode('; ', $request->status))->get()->toArray() : null;
+            $page = $request->get('page') ?? 0;
+            $size = $request->get('size') ?? 5;
+
+            if ($request->has('status')) {
+                $temp = [];
+                foreach ($status as $s) {
+                    $temp[] = $s['status_kontrak_id'];
+                }
+                $status = $temp;
+                unset($temp);
+            }
+
+
+            $total = is_null($status) ? Auth::user()->informasi_akun()->first()->kontrak()->count() : Auth::user()->informasi_akun()->first()->kontrak()->whereIn('status_kontrak_id', $status)->count();
+
+            $page_count = ceil($total / $size);
+
+            $data = !is_null($status) ? DB::Table('kontrak')
+                ->select('komoditas.nama_komoditas')
+                ->addSelect('kontrak.*')
+                ->join('komoditas', 'komoditas.komoditas_id', 'kontrak.komoditas_id')
+                ->where('kontrak.informasi_akun_id', $user->informasi_akun_id)
+                ->whereIn('kontrak.status_kontrak_id', $status)
+                ->orderBy('kontrak.kontrak_kode', 'asc')
+                ->forPage($page, $size)
+                ->get() : DB::Table('kontrak')
+                ->select('komoditas.nama_komoditas')
+                ->addSelect('kontrak.*')
+                ->join('komoditas', 'komoditas.komoditas_id', 'kontrak.komoditas_id')
+                ->where('kontrak.informasi_akun_id', $user->informasi_akun_id)
+                ->orderBy('kontrak.kontrak_kode', 'asc')
+                ->forPage($page, $size)
+                ->get();
+
+
+            if ($total != 0 || $page_count != 0) {
+                $paginator = new LengthAwarePaginator($data, $total, $page_count, $page);
+
+                return response()->json([
+                    'data' => $paginator,
+                    'message' => 'data kontrak has been catched',
+                    'status' => 'success',
+                    'status' => $status
+                ], 200);
+            } else {
+                return response()->json([
+                    'data' => [],
+                    'message' => 'data kontrak has been catched',
+                    'status' => 'success',
+                    'status' => $status
+                ], 200);
+            }
+        } catch (TokenExpiredException $e) {
+            return response()->json([
+                'data' => [],
+                'message' => 'token_expired: ' . $e->getMessage(),
+                'status' => 'error'
+            ], 500);
+            exit;
+        } catch (TokenInvalidException $e) {
+            return response()->json([
+                'data' => [],
+                'message' => 'token_invalid: ' . $e->getMessage(),
+                'status' => 'error'
+            ], 500);
+            exit;
+        } catch (JWTException $e) {
+            return response()->json([
+                'data' => [],
+                'message' => 'token_absent: ' . $e->getMessage(),
+                'status' => 'error'
+            ], 500);
+            exit;
+        }
+    }
+    public function api_show(Kontrak $kontrak)
+    {
+        return response()->json([
+            'data' => $kontrak,
+            'message' => 'kontrak has been catched',
+            'status' => 'success'
+        ], 200);
+        exit;
     }
 }

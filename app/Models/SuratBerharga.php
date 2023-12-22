@@ -24,8 +24,14 @@ class SuratBerharga extends Model
     }
 
     protected $fillable = [
-        'jenis_surat_berharga'
+        'jenis_surat_berharga_id',
+        'detail_jaminan_id'
     ];
+
+    public function jenis_surat_berharga()
+    {
+        return $this->belongsTo(JenisSuratBerharga::class, 'jenis_surat_berharga_id', 'jenis_surat_berharga_id');
+    }
 
     public function detail_jaminan()
     {

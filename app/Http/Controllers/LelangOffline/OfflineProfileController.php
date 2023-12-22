@@ -5,6 +5,7 @@ namespace App\Http\Controllers\LelangOffline;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OfflineProfileRequest;
 use App\Models\OfflineProfile;
+use App\Models\PenyelenggaraPasarLelang;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 
@@ -42,7 +43,8 @@ class OfflineProfileController extends Controller
      */
     public function create()
     {
-        return view('lelang_offline/profile/create');
+        $penyelenggara_pasar_lelang = PenyelenggaraPasarLelang::get();
+        return view('lelang_offline/profile/create', compact('penyelenggara_pasar_lelang'));
     }
 
     /**
@@ -50,7 +52,8 @@ class OfflineProfileController extends Controller
      */
     public function store(OfflineProfileRequest $offlineProfileRequest)
     {
-        $profile = OfflineProfile::create($this->offlineProfileData(true));
+        $penyelenggara_pasar_lelang = PenyelenggaraPasarLelang::where('penyelenggara_pasar_lelang_id', request('penyelenggara_pasar_lelang_id'))->first();
+        $profile = $penyelenggara_pasar_lelang->offline_profile()->create($this->offlineProfileData(true));
 
         return redirect('/offline/profile/' . $profile->offline_profile_id)->with('msg', '<div class="alert alert-success alert-dismissible fade show" role="alert"><strong>Sukses!</strong> Data Profil telah di tambah.<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
     }
@@ -68,7 +71,8 @@ class OfflineProfileController extends Controller
      */
     public function edit(OfflineProfile $profile)
     {
-        return view('lelang_offline/profile/edit', compact('profile'));
+        $penyelenggara_pasar_lelang = PenyelenggaraPasarLelang::get();
+        return view('lelang_offline/profile/edit', compact('profile', 'penyelenggara_pasar_lelang'));
     }
 
     /**

@@ -31,7 +31,7 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="nama_aset" class="col-md-4 col-form-label text-md-end">{{ __('Jenis Keanggotaan')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <div class="selectgroup w-100">
@@ -40,7 +40,7 @@
                                                 <input type="radio" name="jenis_perseorangan" value="lembaga" class="selectgroup-input" checked>
                                                 <span class="selectgroup-button">Lembaga</span>
                                             </label>
-                                            @else 
+                                            @else
                                             <label class="selectgroup-item">
                                                 <input type="radio" name="jenis_perseorangan" value="perseorangan" class="selectgroup-input" checked>
                                                 <span class="selectgroup-button">Perseorangan</span>
@@ -67,7 +67,7 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="nama_lembaga" class="col-md-4 col-form-label text-md-end">{{ __('Nama Lembaga')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="nama_lembaga" type="text" readonly
                                         class="form-control" name="nama_lembaga"
@@ -79,7 +79,7 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="bidang_usaha" class="col-md-4 col-form-label text-md-end">{{ __('Bidang Usaha')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="bidang_usaha" type="text" readonly
                                         class="form-control" name="bidang_usaha"
@@ -103,7 +103,7 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="email_lembaga" class="col-md-4 col-form-label text-md-end">{{ __('Email Lembaga')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="email_lembaga" type="text" readonly
                                         class="form-control" name="email_lembaga"
@@ -111,11 +111,11 @@
                                         autofocus>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="no_hp_lembaga" class="col-md-4 col-form-label text-md-end">{{ __('Nomor HP / Telepon Lembaga')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
@@ -130,11 +130,11 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="no_wa_lembaga" class="col-md-4 col-form-label text-md-end">{{ __('Nomor Whatsapp Lembaga')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
@@ -149,11 +149,11 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="no_fax_lembaga" class="col-md-4 col-form-label text-md-end">{{ __('Nomor Fax Lembaga')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
@@ -168,11 +168,11 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="username_lembaga" class="col-md-4 col-form-label text-md-end">{{ __('Username Lembaga')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                         <input id="username_lembaga" type="text" readonly
                                             class="form-control " name="username_lembaga"
@@ -195,7 +195,7 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="nama_bank_lembaga" class="col-md-4 col-form-label text-md-end">{{ __('Bank Lembaga')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="desa_lembaga" type="text" readonly
                                         class="form-control" name="desa_lembaga"
@@ -207,7 +207,7 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="nomor_rekening_lembaga" class="col-md-4 col-form-label text-md-end">{{ __('Nomor Rekening Lembaga')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                         <input id="nomor_rekening_lembaga" type="text" readonly
                                             class="form-control" name="nomor_rekening_lembaga"
@@ -215,33 +215,33 @@
                                             autofocus>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="nama_pemilik_lembaga" class="col-md-4 col-form-label text-md-end">{{ __('Nama Pemilik Rekening Lembaga')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                         <input id="nama_pemilik_lembaga" type="text" readonly
                                             class="form-control" name="nama_pemilik_lembaga"
                                             value="{{ $calon->rekening_bank()->first()->nama_pemilik }}" autocomplete="name" autofocus>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="cabang_lembaga" class="col-md-4 col-form-label text-md-end">{{ __('Cabang Lembaga')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="cabang_lembaga" type="text" readonly
                                         class="form-control" name="cabang_lembaga"
                                         value="{{ $calon->rekening_bank()->first()->cabang }}" autocomplete="name" autofocus>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="mata_uang_lembaga" class="col-md-4 col-form-label text-md-end">{{ __('Mata Uang Lembaga')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="desa_lembaga" type="text" readonly class="form-control" name="desa_lembaga" value="{{ $calon->rekening_bank()->first()->mata_uang }}" autocomplete="name" autofocus>
                                 </div>
@@ -267,7 +267,7 @@
                                 <div class="col-md-6">
                                     @if($calon->dokumen_member()->where('jenis_dokumen_id', $d->jenis_dokumen_id)->count() > 0)
                                     <img src="{{ asset('storage/dokumen_member_lembaga/' . $calon->dokumen_member()->where('jenis_dokumen_id', $d->jenis_dokumen_id)->first()->nama_file) }}" alt="{{ $d->nama_jenis }}" class="img img-thumbnail" id="{{ $d->nama_jenis }}_lembaga_show_lembaga" />
-                                    @else 
+                                    @else
                                     <p>Tidak ada Dokumen {{ $d->nama_jenis }}</p>
                                     @endif
                                 </div>
@@ -286,11 +286,11 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
-                           
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="nik" class="col-md-4 col-form-label text-md-end">{{ __('NIK')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="nik" type="text"
                                         class="form-control" name="nik" readonly
@@ -302,7 +302,7 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="nama" class="col-md-4 col-form-label text-md-end">{{ __('Nama')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="nama" type="text" readonly
                                         class="form-control" name="nama"
@@ -314,7 +314,7 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="jenis_kelamin" class="col-md-4 col-form-label text-md-end">{{ __('Jenis Kelamin')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="jenis_kelamin" type="text" readonly class="form-control" name="jenis_kelamin" value="{{ $calon->member()->first()->ktp()->first()->jenis_kelamin }}" autocomplete="name" autofocus>
                                 </div>
@@ -323,11 +323,11 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="npwp" class="col-md-4 col-form-label text-md-end">{{ __('NPWP')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="npwp" type="text" readonly
-                                        class="form-control @error('npwp') is-invalid @enderror" name="npwp" value="{{ is_null($calon->member()->first()->informasi_keuangan()->first()->npwp()) ? "Belum ada NPWP" : $calon->member()->first()->informasi_keuangan()->first()->npwp()->first()->npwp }}" autocomplete="name" autofocus>
-        
+                                        class="form-control @error('npwp') is-invalid @enderror" name="npwp" value="{{ is_null($calon->member()->first()->informasi_keuangan()->first()) ? '' : (is_null($calon->member()->first()->informasi_keuangan()->first()->npwp()) ? "Belum ada NPWP" : $calon->member()->first()->informasi_keuangan()->first()->npwp()->first()->npwp) }}" autocomplete="name" autofocus>
+
                                     @error('npwp')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -335,21 +335,21 @@
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="email" class="col-md-4 col-form-label text-md-end">{{ __('Email')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="email" type="text" readonly
                                         class="form-control @error('email') is-invalid @enderror" name="email" value="{{ $calon->email }}" autocomplete="name" autofocus>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="tanggal_lahir" class="col-md-4 col-form-label text-md-end">{{ __('Tanggal Lahir')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="tanggal_lahir" type="date" readonly
                                         class="form-control" name="tanggal_lahir"
@@ -361,7 +361,7 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="tempat_lahir" class="col-md-4 col-form-label text-md-end">{{ __('Tempat Lahir')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <input id="tempat_lahir" type="text" readonly
                                         class="form-control" name="tempat_lahir"
@@ -369,11 +369,11 @@
                                         autofocus>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="no_hp" class="col-md-4 col-form-label text-md-end">{{ __('Nomor HP / Telepon')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
@@ -388,11 +388,11 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="no_wa" class="col-md-4 col-form-label text-md-end">{{ __('Nomor Whatsapp')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
@@ -407,11 +407,11 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="no_fax" class="col-md-4 col-form-label text-md-end">{{ __('Nomor Fax')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
@@ -426,11 +426,11 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="username" class="col-md-4 col-form-label text-md-end">{{ __('Username')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                         <input id="username" type="text"
                                             class="form-control" name="username" readonly
@@ -442,7 +442,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="card">
                 <div class="card-header">
                     <h4>{{ __('Informasi Keuangan') }}</h4>
@@ -453,51 +453,51 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="pekerjaan" class="col-md-4 col-form-label text-md-end">{{ __('Pekerjaan')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                         <input id="pekerjaan" type="text" readonly
                                             class="form-control" name="pekerjaan"
-                                            value="{{ $calon->member()->first()->informasi_keuangan()->first()->pekerjaan }}" autocomplete="name"
+                                            value="{{ is_null($calon->member()->first()->informasi_keuangan()->first()) ? '-' : $calon->member()->first()->informasi_keuangan()->first()->pekerjaan }}" autocomplete="name"
                                             autofocus>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="pendapatan_tahunan" class="col-md-4 col-form-label text-md-end">{{ __('Pendapatan Tahunan')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
-                                    <input id="username" type="text" class="form-control" readonly name="username" value="{{ $calon->member()->first()->informasi_keuangan()->first()->pendapatan_tahunan }}" autocomplete="name" autofocus>
+                                    <input id="username" type="text" class="form-control" readonly name="username" value="{{ is_null($calon->member()->first()->informasi_keuangan()->first()) ? '-' : $calon->member()->first()->informasi_keuangan()->first()->pendapatan_tahunan }}" autocomplete="name" autofocus>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="kekayaan_bersih" class="col-md-4 col-form-label text-md-end">{{ __('Kekayaan Bersih')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
-                                    <input id="kekayaan_bersih" type="text" readonly class="form-control" name="kekayaan_bersih" value="Rp. {{ number_format($calon->member()->first()->informasi_keuangan()->first()->kekayaan_bersih, 2, ".", ",") }}" autocomplete="name" autofocus>
+                                    <input id="kekayaan_bersih" type="text" readonly class="form-control" name="kekayaan_bersih" value="Rp. {{ number_format(is_null($calon->member()->first()->informasi_keuangan()->first()) ? 0 : $calon->member()->first()->informasi_keuangan()->first()->kekayaan_bersih, 2, ".", ",") }}" autocomplete="name" autofocus>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="kekayaan_lancar" class="col-md-4 col-form-label text-md-end">{{ __('Kekayaan Lancar')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
                                         <input id="kekayaan_lancar" type="text" readonly
                                             class="form-control" name="kekayaan_lancar"
-                                            value="Rp. {{ number_format($calon->member()->first()->informasi_keuangan()->first()->kekayaan_lancar, 2, ".", ",") }}" autocomplete="name"
+                                            value="Rp. {{ number_format(is_null($calon->member()->first()->informasi_keuangan()->first()) ? 0 : $calon->member()->first()->informasi_keuangan()->first()->kekayaan_lancar, 2, ".", ",") }}" autocomplete="name"
                                             autofocus>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="sumber_dana" class="col-md-4 col-form-label text-md-end">{{ __('Sumber Dana')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
-                                    <input id="username" type="text" class="form-control" readonly name="username" value="{{ $calon->member()->first()->informasi_keuangan()->first()->sumber_dana }}" autocomplete="name" autofocus>
+                                    <input id="username" type="text" class="form-control" readonly name="username" value="{{ is_null($calon->member()->first()->informasi_keuangan()->first()) ? '-' : $calon->member()->first()->informasi_keuangan()->first()->sumber_dana }}" autocomplete="name" autofocus>
                                 </div>
                             </div>
                         </div>
@@ -515,46 +515,65 @@
                             <div class="row mb-3 justify-content-center">
                                 <label for="nama_bank" class="col-md-4 col-form-label text-md-end">{{ __('Bank')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
+                                    @if(is_null($calon->rekening_bank()->first()))
+                                    <p>Belum ada Rekening Bank</p>
+                                    @else
                                     <input id="username" type="text" class="form-control" readonly name="username" value="{{ !is_null($calon->rekening_bank()->first()->bank()->first()) ? $calon->rekening_bank()->first()->bank()->first()->nama_bank : "Belum Dipilih" }}" autocomplete="name" autofocus>
+                                    @endif
                                 </div>
                             </div>
 
                             <div class="row mb-3 justify-content-center">
                                 <label for="nomor_rekening" class="col-md-4 col-form-label text-md-end">{{ __('Nomor Rekening')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
-                                        <input id="nomor_rekening" type="text" readonly class="form-control" name="nomor_rekening" value="{{ $calon->rekening_bank()->first()->nomor_rekening }}" autocomplete="name" autofocus>
+                                    @if(is_null($calon->rekening_bank()->first()))
+                                    <p>Belum ada Rekening Bank</p>
+                                    @else
+                                    <input id="nomor_rekening" type="text" readonly class="form-control" name="nomor_rekening" value="{{ $calon->rekening_bank()->first()->nomor_rekening }}" autocomplete="name" autofocus>
+                                    @endif
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="nama_pemilik" class="col-md-4 col-form-label text-md-end">{{ __('Nama Pemilik Rekening')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
-                                        <input id="nama_pemilik" type="text" readonly class="form-control" name="nama_pemilik" value="{{ $calon->rekening_bank()->first()->nama_pemilik }}" autocomplete="name" autofocus>
+                                    @if(is_null($calon->rekening_bank()->first()))
+                                    <p>Belum ada Rekening Bank</p>
+                                    @else
+                                    <input id="nama_pemilik" type="text" readonly class="form-control" name="nama_pemilik" value="{{ $calon->rekening_bank()->first()->nama_pemilik }}" autocomplete="name" autofocus>
+                                    @endif
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="cabang" class="col-md-4 col-form-label text-md-end">{{ __('Cabang')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
-                                        <input id="cabang" type="text" readonly
-                                            class="form-control" name="cabang" value="{{ $calon->rekening_bank()->first()->cabang }}" autocomplete="name" autofocus>
+                                    @if(is_null($calon->rekening_bank()->first()))
+                                    <p>Belum ada Rekening Bank</p>
+                                    @else
+                                    <input id="cabang" type="text" readonly class="form-control" name="cabang" value="{{ $calon->rekening_bank()->first()->cabang }}" autocomplete="name" autofocus>
+                                    @endif
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3 justify-content-center">
                                 <label for="mata_uang" class="col-md-4 col-form-label text-md-end">{{ __('Mata Uang')
                                     }}</label>
-        
+
                                 <div class="col-md-6">
-                                    <input id="username" type="text" class="form-control" readonly name="username" value="{{ $calon->rekening_bank()->first()->mata_uang }}" autocomplete="name" autofocus>
+                                    @if(is_null($calon->rekening_bank()->first()))
+                                    <p>Belum ada Rekening Bank</p>
+                                    @else
+                                    <input id="username" type="text" class="form-control" readonly name="mata_uang" value="{{ $calon->rekening_bank()->first()->mata_uang }}" autocomplete="name" autofocus>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -598,6 +617,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="row mb-3 justify-content-center">
+                                @if($calon->area_member()->count() > 0)
                                 <div class="table-responsive">
                                     <table class="table table-hover table-stripped">
                                         <thead>
@@ -624,6 +644,9 @@
                                         </tbody>
                                     </table>
                                 </div>
+                                @else
+                                <p>Tidak Ada Alamat Member</p>
+                                @endif
                             </div>
                         </div>
                     </div>

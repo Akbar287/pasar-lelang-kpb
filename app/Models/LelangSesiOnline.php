@@ -42,4 +42,9 @@ class LelangSesiOnline extends Model
     {
         return $this->belongsTo(Lelang::class, 'lelang_id', 'lelang_id');
     }
+
+    public function peserta_lelang_aktif()
+    {
+        return $this->hasMany(PesertaLelangAktif::class, 'master_sesi_lelang_id', 'master_sesi_lelang_id');
+    }
 }

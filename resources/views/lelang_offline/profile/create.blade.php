@@ -27,6 +27,25 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="row mb-3 justify-content-center">
+                                    <label for="penyelenggara_pasar_lelang_id" class="col-md-4 col-form-label text-md-end">{{ __('Status')
+                                        }}</label>
+            
+                                    <div class="col-md-6">
+                                            <select id="penyelenggara_pasar_lelang_id" type="text" @if(count($penyelenggara_pasar_lelang) == 0) disabled @endif class="custom-select @error('penyelenggara_pasar_lelang_id') is-invalid @enderror" name="penyelenggara_pasar_lelang_id">
+                                                @foreach ($penyelenggara_pasar_lelang as $ppl)
+                                                <option {{ old('penyelenggara_pasar_lelang_id') == $ppl->penyelenggara_pasar_lelang_id ? 'selected' : '' }} value="{{ $ppl->penyelenggara_pasar_lelang_id }}">{{ $ppl->admin()->first()->member()->first()->ktp()->first()->nama . ' ('. $ppl->admin()->first()->member()->first()->ktp()->first()->nik .')' }}</option>
+                                                @endforeach
+                                            </select>
+                                        
+                                        @error('penyelenggara_pasar_lelang_id')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3 justify-content-center">
                                     <label for="registrasi_id" class="col-md-4 col-form-label text-md-end">{{ __('Registrasi Id')
                                         }}</label>
             

@@ -36,6 +36,7 @@
                             <thead>
                                 <tr>
                                     <th>Id File</th>
+                                    <th>Jenis Dokumen</th>
                                     <th>Gambar</th>
                                     <th>Nama Dokumen</th>
                                     <th>Aksi</th>

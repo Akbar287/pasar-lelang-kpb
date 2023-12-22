@@ -37,13 +37,14 @@
                                 <div class="col-12 col-sm-12 col-md-4 text-center">
                                     @if($lelang->dokumen_produk()->count() > 0)
                                     <img class="img img-thumbnail" src="{{ asset('storage/produk/' . $lelang->dokumen_produk()->where('is_gambar_utama', true)->first()->nama_file) }}" alt="{{ $lelang->dokumen_produk()->where('is_gambar_utama', true)->first()->nama_dokumen }}" width="120" />
-                                    @else 
+                                    @else
                                     <p>Tidak Ada Gambar</p>
                                     @endif
                                 </div>
                                 <div class="col-12 col-sm-12 col-md-8 text-center pl-8">
                                     <h4 class="text-warning" id="time">00:00:00</h4>
-                                    @if($lelang->status_lelang_pivot()->where('is_aktif', true)->first()->status_lelang()->first()->nama_status == 'Selesai')
+                                    @if($lelang->status_lelang_pivot()->where('is_aktif', true)->first()->status_lelang()->first()->nama_status == 'Selesai' || $lelang->status_lelang_pivot()->where('is_aktif', true)->first()->status_lelang()->first()->nama_status == 'Selesai' || $lelang->status_lelang_pivot()->where('is_aktif', true)->first()->status_lelang()->first()->nama_status == 'Transaksi Lelang' || $lelang->status_lelang_pivot()->where('is_aktif', true)->first()->status_lelang()->first()->nama_status == 'Verifikasi Transaksi' || $lelang->status_lelang_pivot()->where('is_aktif', true)->first()->status_lelang()->first()->nama_status == 'Transaksi Selesai' || $lelang->status_lelang_pivot()->where('is_aktif', true)->first()->status_lelang()->first()->nama_status == 'Verifikasi Transaksi Ditolak'
+                                    )
                                     <button class="btn btn-danger btn-block btn-lg" disabled id="closed_btn"><i class="fas fa-times"></i> Ditutup</button>
                                     @else
                                     <button class="btn btn-danger btn-block btn-lg d-none" disabled id="closed_btn"><i class="fas fa-times"></i> Ditutup</button>
@@ -67,7 +68,7 @@
                                             <tbody>
                                                 <tr>
                                                     <td>Pemilik</td>
-                                                    <th>{{ !is_null($lelang->kontrak()->first()->informasi_akun()->first()->member()->first()) ? $lelang->kontrak()->first()->informasi_akun()->first()->member()->first()->ktp()->first()->nama : $lelang->kontrak()->first()->informasi_akun()->first()->lembaga()->first()->nama_lembaga }}</th>
+                                                    <th>{{ !is_null($lelang->kontrak()->first()->informasi_akun()->first()->member()->first()) ? $lelang->kontrak()->first()->informasi_akun()->first()->member()->first()->ktp()->first()->nama : $lelang->kontrak()->first()->informasi_akun()->first()->lembaga()->first()->nama_lembaga }} (<i class="fas fa fa-star"></i> {{ is_null($lelang->kontrak()->first()->informasi_akun()->first()->rating()->first()) ? '0.0' : $lelang->kontrak()->first()->informasi_akun()->first()->rating()->first()->avg_stars }})</th>
                                                 </tr>
                                                 <tr>
                                                     <td>Lokasi Penyerahan</td>
@@ -96,8 +97,12 @@
                             <div class="row">
                                 @if($event->daftar_peserta_lelang()->count() > 0)
                                 @foreach($event->daftar_peserta_lelang()->orderBy('kode_peserta_lelang', 'asc')->get() as $dpl)
-                                <div class="col-4 col-sm-4 col-md-3 col-lg-2">
+                                <div class="col-4 col-sm-4 col-md-3 col-lg-2 my-1">
+                                    @if($dpl->informasi_akun_id == $lelang->kontrak()->first()->informasi_akun_id)
+                                    <button type="button" data-kode="{{ $dpl->kode_peserta_lelang }}" disabled class="btn btn-primary btn-block btn-rounded">{{ $dpl->kode_peserta_lelang }}</button>
+                                    @else
                                     <button type="button" data-kode="{{ $dpl->kode_peserta_lelang }}" disabled class="btn btn-primary btn-block btn-rounded btn-peserta-lelang">{{ $dpl->kode_peserta_lelang }}</button>
+                                    @endif
                                 </div>
                                 @endforeach
                                 @else
@@ -123,7 +128,7 @@
                             <h4>{{ __('Riwayat Penawaran') }}</h4>
                         </div>
                         <div class="card-body text-center riwayat_penawaran" style="overflow-y: scroll;">
-                            @if(is_null($lelang->jenis_platform_lelang()->first())) 
+                            @if(is_null($lelang->jenis_platform_lelang()->first()))
                             <div class="badge badge-danger">Belum Ada</div>
                             @elseif($lelang->jenis_platform_lelang()->first()->online && !$lelang->jenis_platform_lelang()->first()->offline)
                             @if($lelang->peserta_lelang_berlangsung()->orderBy('harga_ajuan', 'desc')->count() > 0)
@@ -134,7 +139,7 @@
                                 </li>
                                 @endforeach
                             </ul>
-                            @else 
+                            @else
                             <p class="text-muted">Belum ada penawaran</p>
                             @endif
                             @elseif($lelang->jenis_platform_lelang()->first()->online && $lelang->jenis_platform_lelang()->first()->offline)
@@ -146,7 +151,7 @@
                                 </li>
                                 @endforeach
                             </ul>
-                            @else 
+                            @else
                             <p class="text-muted">Belum ada penawaran</p>
                             @endif
                             @elseif(!$lelang->jenis_platform_lelang()->first()->online && $lelang->jenis_platform_lelang()->first()->offline)
@@ -158,7 +163,7 @@
                                 </li>
                                 @endforeach
                             </ul>
-                            @else 
+                            @else
                             <p class="text-muted">Belum ada penawaran</p>
                             @endif
                             @else

@@ -291,6 +291,7 @@
                                 <div class="row mb-0">
                                     <div class="col-md-6 offset-md-4 d-flex align-items-end">
                                         <a type="button" href="{{ route('administrasi.kas_bank.verifikasi.index') }}" class="btn btn-primary mr-2"><i class="fas fa-arrow-left"></i> Kembali</a>
+                                        <a type="button" href="{{ route('administrasi.kas_bank.verifikasi.file.index', $keuangan->keuangan_id) }}" class="btn btn-info mr-2"><i class="fas fa-file"></i> File</a>
                                         @if(is_null($keuangan->verified_log()->first()))
                                         <button type="submit" href="{{ route('administrasi.kas_bank.verifikasi.confirmation', $keuangan->keuangan_id) }}" class="btn mx-2 btn-success"><i class="fas fa-pen"></i> Verifikasi</button>
                                         @endif

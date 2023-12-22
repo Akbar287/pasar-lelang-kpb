@@ -55,6 +55,12 @@ class UserSeed extends Seeder
             $informasi->avatar = "default.png";
             $informasi->save();
 
+            $informasi->jaminan()->create([
+                'total_saldo_jaminan' => 0,
+                'saldo_teralokasi' => 0,
+                'saldo_tersedia' => 0
+            ]);
+
             $member = $informasi->member()->create($member);
 
 

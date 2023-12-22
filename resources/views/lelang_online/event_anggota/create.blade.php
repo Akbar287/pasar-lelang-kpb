@@ -20,7 +20,7 @@
     <div class="row justify-content-center">
         <div class="col-md-12">
             @if(session('msg')){!! session('msg') !!} @endif
-            <form action="{{ route('online.event.anggota.store', $event->lelang_sesi_online_id) }}" method="post" enctype="multipart/form-data">@csrf 
+            <form action="{{ route('online.event.anggota.store', $event->lelang_sesi_online_id) }}" method="post" enctype="multipart/form-data">@csrf
                 <div class="card">
                     <div class="card-header">
                         <h4>{{ __('Tambah Anggota') }}</h4>
@@ -38,7 +38,7 @@
                                                 <option {{ old('informasi_akun_id') == $op->member_id ? 'selected' : '' }} value="{{ $op->informasi_akun()->first()->informasi_akun_id }}">{{ $op->ktp()->first()->nama . ' ('. $op->ktp()->first()->nik .')' }}</option>
                                                 @endforeach
                                             </select>
-                                        
+
                                         @error('informasi_akun_id')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
@@ -50,12 +50,12 @@
                                 <div class="row mb-3 justify-content-center">
                                     <label for="kode_peserta_lelang" class="col-md-4 col-form-label text-md-end">{{ __('Kode Event')
                                         }}</label>
-            
+
                                     <div class="col-md-6">
-                                            <input id="kode_peserta_lelang" type="text"
+                                            <input id="kode_peserta_lelang" type="number"
                                                 class="form-control @error('kode_peserta_lelang') is-invalid @enderror" name="kode_peserta_lelang"
-                                                value="{{ old("kode_peserta_lelang") }}">
-                                        
+                                                value="{{ $rekomendNomor }}">
+
                                         @error('kode_peserta_lelang')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>

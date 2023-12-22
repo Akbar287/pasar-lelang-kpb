@@ -8,8 +8,6 @@ use App\Models\InformasiAkun;
 use App\Models\JenisDokumen;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
 use Yajra\DataTables\DataTables;
 
@@ -131,9 +129,6 @@ class DokumenMemberController extends Controller
         return redirect('/master/anggota/list/' . $anggota->informasi_akun_id . '/dokumen/' . $dokumen->dokumen_member_id)->with('msg', '<div class="alert alert-success alert-dismissible fade show" role="alert"><strong>Sukses!</strong> Data Dokumen Anggota telah diubah.<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(InformasiAkun $anggota, DokumenMember $dokumen)
     {
         if ($dokumen->nama_file != 'default.png') {
@@ -142,5 +137,16 @@ class DokumenMemberController extends Controller
         $dokumen->delete();
 
         return redirect('/master/anggota/list/' . $anggota->informasi_akun_id . '/dokumen')->with('msg', '<div class="alert alert-success alert-dismissible fade show" role="alert"><strong>Sukses!</strong> Data Dokumen Anggota telah dihapus.<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+    }
+
+    public function api_dokumen()
+    {
+        $jenisDokumen = JenisDokumen::get();
+
+        return response()->json([
+            'data' => $jenisDokumen,
+            'message' => 'jenis dokumen has been catched',
+            'status' => 'success'
+        ], 200);
     }
 }

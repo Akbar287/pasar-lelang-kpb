@@ -24,6 +24,11 @@ class StatusLelangSeeder extends Seeder
                 ['nama_status' => 'Tolak'],
                 ['nama_status' => 'Suspend'],
                 ['nama_status' => 'Selesai'],
+                ['nama_status' => 'Transaksi Lelang'],
+                ['nama_status' => 'Verifikasi Transaksi'],
+                ['nama_status' => 'Transaksi Selesai'],
+                ['nama_status' => 'Verifikasi Transaksi Ditolak']
+
             ];
 
             foreach ($temp as $t) {

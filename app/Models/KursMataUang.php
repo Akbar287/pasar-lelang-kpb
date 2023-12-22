@@ -35,4 +35,9 @@ class KursMataUang extends Model
     {
         return $this->hasMany(Keuangan::class, 'kurs_mata_uang_id', 'kurs_mata_uang_id');
     }
+
+    public function kas()
+    {
+        return $this->hasMany(Kas::class, 'kurs_mata_uang_id', 'kurs_mata_uang_id');
+    }
 }

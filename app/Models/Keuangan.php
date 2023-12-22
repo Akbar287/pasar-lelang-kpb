@@ -34,6 +34,11 @@ class Keuangan extends Model
         return $this->belongsTo(RekeningBank::class, 'rekening_bank_id', 'rekening_bank_id');
     }
 
+    public function file_keuangan()
+    {
+        return $this->hasMany(FileKeuangan::class, 'keuangan_id', 'keuangan_id');
+    }
+
     public function jenis_transaksi()
     {
         return $this->belongsTo(JenisTransaksi::class, 'jenis_transaksi_id', 'jenis_transaksi_id');

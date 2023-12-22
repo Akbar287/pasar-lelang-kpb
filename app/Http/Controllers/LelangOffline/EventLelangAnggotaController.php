@@ -3,15 +3,27 @@
 namespace App\Http\Controllers\LelangOffline;
 
 use App\Http\Controllers\Controller;
+use App\Http\Helper\Helper;
 use App\Models\Admin;
 use App\Models\DaftarPesertaLelang;
 use App\Models\EventLelang;
+use App\Models\InformasiAkun;
 use App\Models\StatusMember;
+use App\Models\Userlogin;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Yajra\DataTables\DataTables;
 
 class EventLelangAnggotaController extends Controller
 {
+    public function __construct()
+    {
+        date_default_timezone_set('Asia/Jakarta');
+    }
     /**
      * Display a listing of the resource.
      */
@@ -49,7 +61,8 @@ class EventLelangAnggotaController extends Controller
     public function create(Request $request, EventLelang $event)
     {
         $members = StatusMember::where('nama_status', 'Aktif')->first()->member()->whereNotIn('member_id', Admin::select('member.member_id')->join('member', 'member.member_id', 'admin.member_id')->get()->toArray())->whereNotIn('member_id', $event->daftar_peserta_lelang()->select('member.member_id')->join('informasi_akun', 'daftar_peserta_lelang.informasi_akun_id', 'informasi_akun.informasi_akun_id')->join('member', 'member.informasi_akun_id', 'informasi_akun.informasi_akun_id')->get()->toArray())->get();
-        return view('lelang_offline/event_anggota/create', compact('event', 'members'));
+        $rekomendasiNomor = $this->rekomendasiKodeAnggota($event);
+        return view('lelang_offline/event_anggota/create', compact('event', 'members', 'rekomendasiNomor'));
     }
 
     /**
@@ -78,6 +91,63 @@ class EventLelangAnggotaController extends Controller
     public function show(EventLelang $event, DaftarPesertaLelang $anggota)
     {
         return view('lelang_offline/event_anggota/show', compact('event', 'anggota'));
+    }
+
+    public function show_komoditi(EventLelang $event)
+    {
+        $penjual = [];
+        $tempNama = [];
+        foreach ($event->lelang()->get() as $l) {
+            $tempNama[] = $l->kontrak()->first()->informasi_akun_id;
+        }
+        $tempNama = array_values(array_unique($tempNama));
+
+        $informasiAkunAll = InformasiAkun::whereIn('informasi_akun_id', $tempNama)->get();
+
+
+        for ($i = 0; $i < count($tempNama); $i++) {
+            $temp = [];
+            foreach ($event->lelang()->get() as $l) {
+                if (!is_null($l->kontrak()->where('informasi_akun_id', $tempNama[$i])->first())) {
+                    $temp[] = $l->kontrak()->first()->komoditas()->first()->nama_komoditas;
+                }
+            }
+            $penjual[] = [
+                'nama' => $informasiAkunAll->where('informasi_akun_id', $tempNama[$i])->first()->member()->first()->ktp()->first()->nama,
+                'komoditas' => array_unique($temp)
+            ];
+        }
+        unset($tempNama);
+
+        return view('lelang_offline/event_anggota/show_komoditi', compact('event', 'penjual'));
+    }
+
+    public function show_komoditi_cetak(EventLelang $event)
+    {
+        $penjual = [];
+        $tempNama = [];
+        foreach ($event->lelang()->get() as $l) {
+            $tempNama[] = $l->kontrak()->first()->informasi_akun_id;
+        }
+        $tempNama = array_values(array_unique($tempNama));
+
+        $informasiAkunAll = InformasiAkun::whereIn('informasi_akun_id', $tempNama)->get();
+
+        for ($i = 0; $i < count($tempNama); $i++) {
+            $temp = [];
+            foreach ($event->lelang()->get() as $l) {
+                if (!is_null($l->kontrak()->where('informasi_akun_id', $tempNama[$i])->first())) {
+                    $temp[] = $l->kontrak()->first()->komoditas()->first()->nama_komoditas;
+                }
+            }
+            $penjual[] = [
+                'nama' => $informasiAkunAll->where('informasi_akun_id', $tempNama[$i])->first()->member()->first()->ktp()->first()->nama,
+                'komoditas' => array_unique($temp)
+            ];
+        }
+        unset($tempNama);
+
+        return Helper::show_komoditi_member_sesi($event, $penjual);
     }
 
     /**
@@ -115,5 +185,79 @@ class EventLelangAnggotaController extends Controller
             'informasi_akun_id' => request('informasi_akun_id'),
             'kode_peserta_lelang' => request('kode_peserta_lelang'),
         ];
+    }
+
+    public function rekomendasiKodeAnggota($event)
+    {
+        $temp = $event->daftar_peserta_lelang()->count();
+        return is_null($temp) ? 1 : intval($temp) + 1;
+    }
+
+    public function joinEventLelangOffline(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'event_lelang_id' => ['required'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'data' => [],
+                'status' => 'error',
+                'message' => $validator->errors()
+            ], 400);
+            exit;
+        } else {
+            $el = EventLelang::where('event_lelang_id', $request->event_lelang_id)->first();
+
+            if (is_null($el)) {
+                return response()->json([
+                    'data' => [],
+                    'status' => 'error',
+                    'message' => 'UUID event lelang wrong'
+                ], 400);
+                exit;
+            }
+            try {
+                $token = JWTAuth::getToken();
+                $apy = JWTAuth::getPayload($token)->toArray();
+
+                $user = Userlogin::where('userlogin_id', $apy['sub'])->first();
+                $data = $el->daftar_peserta_lelang()->where('informasi_akun_id', $user->informasi_akun_id)->first();
+
+                if (is_null($data)) {
+                    $data =  $el->daftar_peserta_lelang()->create([
+                        'informasi_akun_id' => $user->informasi_akun_id,
+                        'kode_peserta_lelang' => $this->rekomendasiKodeAnggota($el)
+                    ]);
+                }
+
+                return response()->json([
+                    'data' => $data,
+                    'message' => 'kode anggota sesi lelang sudah digenerate',
+                    'status' => 'success'
+                ], 200);
+            } catch (TokenExpiredException $e) {
+                return response()->json([
+                    'data' => [],
+                    'message' => 'token_expired: ' . $e->getMessage(),
+                    'status' => 'error'
+                ], 500);
+                exit;
+            } catch (TokenInvalidException $e) {
+                return response()->json([
+                    'data' => [],
+                    'message' => 'token_invalid: ' . $e->getMessage(),
+                    'status' => 'error'
+                ], 500);
+                exit;
+            } catch (JWTException $e) {
+                return response()->json([
+                    'data' => [],
+                    'message' => 'token_absent: ' . $e->getMessage(),
+                    'status' => 'error'
+                ], 500);
+                exit;
+            }
+        }
     }
 }

@@ -49,6 +49,11 @@ class Lelang extends Model
         return $this->hasMany(DaftarPesertalelangBerlangsung::class, 'lelang_id', 'lelang_id');
     }
 
+    public function approval_lelang()
+    {
+        return $this->hasMany(ApprovalLelang::class, 'lelang_id', 'lelang_id');
+    }
+
     public function jenis_perdagangan()
     {
         return $this->belongsTo(JenisPerdagangan::class, 'jenis_perdagangan_id', 'jenis_perdagangan_id');
@@ -107,5 +112,20 @@ class Lelang extends Model
     public function lelang_sesi_online()
     {
         return $this->hasMany(LelangSesiOnline::class, 'lelang_id', 'lelang_id');
+    }
+
+    public function daftar_peserta_lelang_aktif()
+    {
+        return $this->hasMany(DaftarPesertaLelangAktif::class, 'lelang_id', 'lelang_id');
+    }
+
+    public function peserta_lelang_aktif()
+    {
+        return $this->hasMany(PesertaLelangAktif::class, 'lelang_id', 'lelang_id');
+    }
+
+    public function rating_detail()
+    {
+        return $this->hasMany(RatingDetail::class, 'lelang_id', 'lelang_id');
     }
 }

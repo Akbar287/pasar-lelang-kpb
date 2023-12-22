@@ -72,7 +72,6 @@
                                         </span>
                                         @enderror
                                     </div>
-
                                     <div class="form-group">
                                         <button type="submit" class="btn btn-primary btn-lg btn-block" tabindex="4">
                                             {{ __('Login') }}
@@ -80,6 +79,15 @@
                                     </div>
                                 </form>
                                 <div class="row">
+                                    @if (Route::has('register'))
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                            Belum Punya Akun? <a href="{{ route('register') }}" class="">
+                                                {{ __('Registrasi') }}
+                                                </a>
+                                        </div>
+                                    </div>
+                                    @endif
                                     <div class="col-12 text-center">
                                         <a type="button" class="" href="{{ url('/') }}" tabindex="4">
                                             {{ __('Kembali') }}
@@ -90,7 +98,7 @@
                             </div>
                         </div>
                         <div class="simple-footer">
-                            Copyright &copy; Monitoring SPBU {{ now()->year }}
+                            Copyright &copy; {{config('app.name', 'e-Lelang KPB')}} {{ now()->year }}
                         </div>
                     </div>
                 </div>

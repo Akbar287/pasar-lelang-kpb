@@ -32,4 +32,9 @@ class Bank extends Model
     {
         return $this->hasMany(RekeningBank::class, 'bank_id', 'bank_id');
     }
+
+    public function rekening_pusat()
+    {
+        return $this->hasMany(RekeningPusat::class, 'bank_id', 'bank_id');
+    }
 }

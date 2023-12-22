@@ -9,7 +9,6 @@ use Ramsey\Uuid\Uuid;
 class ApprovalLelang extends Model
 {
     use HasFactory;
-    public $timestamps = false;
     protected $table = 'approval_lelang';
     protected $primaryKey = 'approval_lelang_id';
     public $incrementing = false;
@@ -26,7 +25,7 @@ class ApprovalLelang extends Model
     protected $fillable = [
         'informasi_akun_id',
         'jenis_harga_id',
-        'verified_log_id',
+        'lelang_id',
         'harga_pemenang'
     ];
 
@@ -40,9 +39,14 @@ class ApprovalLelang extends Model
         return $this->belongsTo(JenisHarga::class, 'jenis_harga_id', 'jenis_harga_id');
     }
 
-    public function verified_log()
+    public function nomor_surat()
     {
-        return $this->belongsTo(VerifiedLog::class, 'verified_log_id', 'verified_log_id');
+        return $this->hasOne(NomorSurat::class, 'approval_lelang_id', 'approval_lelang_id');
+    }
+
+    public function lelang()
+    {
+        return $this->belongsTo(Lelang::class, 'lelang_id', 'lelang_id');
     }
 
     public function pembayaran_lelang()

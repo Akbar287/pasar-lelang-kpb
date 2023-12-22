@@ -29,7 +29,7 @@ class Kabupaten extends Model
 
     public function provinsi()
     {
-        return $this->belongsTo(provinsi::class, 'provinsi_id', 'provinsi_id');
+        return $this->belongsTo(Provinsi::class, 'provinsi_id', 'provinsi_id');
     }
 
     public function kecamatan()

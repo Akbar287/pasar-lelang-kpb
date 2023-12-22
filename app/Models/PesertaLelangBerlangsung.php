@@ -35,18 +35,13 @@ class PesertaLelangBerlangsung extends Model
         return $this->belongsTo(PesertaLelang::class, 'peserta_lelang_id', 'peserta_lelang_id');
     }
 
-    public function approval_lelang()
-    {
-        return $this->hasOne(ApprovalLelang::class, 'peserta_lelang_berlangsung_id', 'peserta_lelang_berlangsung_id');
-    }
-
     public function lelang()
     {
         return $this->belongsTo(Lelang::class, 'lelang_id', 'lelang_id');
     }
 
-    public function peserta_lelang_berlangsung()
+    public function approval_lelang()
     {
-        return $this->belongsToMany(PesertalelangBerlangsung::class, 'peserta_lelang_berlangsung_approval', 'peserta_lelang_berlangsung_id', 'approval_lelang_id');
+        return $this->belongsToMany(ApprovalLelang::class, 'peserta_lelang_berlangsung_approval', 'peserta_lelang_berlangsung_id', 'approval_lelang_id');
     }
 }

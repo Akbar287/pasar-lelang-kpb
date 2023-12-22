@@ -25,22 +25,22 @@ class AreaMemberController extends Controller
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('provinsi', function ($row) {
-                    return $row->desa()->first()->kecamatan()->first()->kabupaten()->first()->provinsi()->first()->nama_provinsi;
+                    return is_null($row->desa()->first()->kecamatan()->first()->kabupaten()->first()->provinsi()->first()->nama_provinsi) ? '-' : $row->desa()->first()->kecamatan()->first()->kabupaten()->first()->provinsi()->first()->nama_provinsi;
                 })
                 ->addColumn('kabupaten', function ($row) {
-                    return $row->desa()->first()->kecamatan()->first()->kabupaten()->first()->nama_kabupaten;
+                    return is_null($row->desa()->first()->kecamatan()->first()->kabupaten()->first()->nama_kabupaten) ? '-' : $row->desa()->first()->kecamatan()->first()->kabupaten()->first()->nama_kabupaten;
                 })
                 ->addColumn('kecamatan', function ($row) {
-                    return $row->desa()->first()->kecamatan()->first()->nama_kecamatan;
+                    return is_null($row->desa()->first()->kecamatan()->first()->nama_kecamatan) ? '-' : $row->desa()->first()->kecamatan()->first()->nama_kecamatan;
                 })
                 ->addColumn('desa', function ($row) {
-                    return $row->desa()->first()->nama_desa;
+                    return is_null($row->desa()->first()->nama_desa) ? '-' : $row->desa()->first()->nama_desa;
                 })
                 ->addColumn('alamat', function ($row) {
-                    return $row->alamat;
+                    return is_null($row->alamat) ? '-' : $row->alamat;
                 })
                 ->addColumn('kode_pos', function ($row) {
-                    return $row->kode_pos;
+                    return is_null($row->kode_pos) ? '-' : $row->kode_pos;
                 })
                 ->addColumn('action', function ($row) {
                     $actionBtn = '<a href="' . route('master.anggota.list.area.show', [$row->informasi_akun()->first()->informasi_akun_id, $row->area_member_id]) . '" class="edit btn btn-success btn-sm">Detail</a>';

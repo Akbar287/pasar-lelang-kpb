@@ -25,6 +25,7 @@ class RegistrasikomoditasJaminan extends Model
 
     protected $fillable = [
         'detail_jaminan_id',
+        'komoditi',
         'kadaluarsa',
         'kuantitas',
         'unit',
@@ -37,5 +38,10 @@ class RegistrasikomoditasJaminan extends Model
     public function detail_jaminan()
     {
         return $this->belongsTo(DetailJaminan::class, 'detail_jaminan_id', 'detail_jaminan_id');
+    }
+
+    public function jaminan_komoditas()
+    {
+        return $this->hasMany(JaminanKomoditas::class, 'registrasi_komoditas_jaminan_id', 'registrasi_komoditas_jaminan_id');
     }
 }

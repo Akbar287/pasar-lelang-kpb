@@ -24,14 +24,14 @@ class AnggotaDibekukanController extends Controller
                 })
                 ->addColumn('nama', function ($row) {
                     if (!is_null($row->informasi_akun()->first()->lembaga()->first())) {
-                        $actionBtn = $row->nama_lembaga;
+                        $actionBtn = is_null($row->nama_lembaga) ? '-' : $row->nama_lembaga;
                     } else {
-                        $actionBtn = $row->ktp()->first()->nama;
+                        $actionBtn = is_null($row->ktp()->first()->nama) ? '-' : $row->ktp()->first()->nama;
                     }
                     return $actionBtn;
                 })
                 ->addColumn('username', function ($row) {
-                    $actionBtn = $row->informasi_akun()->first()->userlogin()->first()->username;
+                    $actionBtn = is_null($row->informasi_akun()->first()->userlogin()->first()->username) ? '-' : $row->informasi_akun()->first()->userlogin()->first()->username;
                     return $actionBtn;
                 })
                 ->addColumn('tanggal', function ($row) {

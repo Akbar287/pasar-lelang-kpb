@@ -27,9 +27,14 @@
                 </div>
                 <div class="card-body">
                     <div class="row justify-content-center">
-                        @if($data->count() > 0)
+                        <div class="col-12 col-md-4"></div>
+                        <div class="col-12 col-md-4"></div>
+                        <div class="col-12 col-md-4"></div>
+                    </div>
+                    @if($data->count() > 0)
+                    <div class="row justify-content-center">
                         @foreach($data as $dt)
-                        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-4 col-xxl-2">
                             <article class="article">
                                 <div class="article-header">
                                     <div class="article-image" data-background="{{ asset('storage/produk/' . (empty($dt->dokumen_produk()->where('is_gambar_utama', true)->first()) ? 'default.png' : $dt->dokumen_produk()->where('is_gambar_utama', true)->first()->nama_file)) }}" style='background-image: url("{{ asset('storage/produk/' . (empty($dt->dokumen_produk()->where('is_gambar_utama', true)->first()) ? 'default.png' : $dt->dokumen_produk()->where('is_gambar_utama', true)->first()->nama_file)) }}")'></div>
@@ -42,22 +47,28 @@
                                     <div><i class="fas fa-file"></i> {{ $dt->kontrak()->first()->kontrak_kode }}</div>
                                     <div><i class="fas fa-cubes"></i> {{ number_format($dt->kuantitas, 0, ".", ",") . ' ' . $dt->kontrak()->first()->komoditas()->first()->satuan_ukuran }}</div>
                                     <div><i class="fas fa-map-marker"></i> {{ $dt->lokasi_penyerahan }}</div>
-                                    <div class="article-cta">                           
-                                        <a href="{{ route('offline.event.produk.show', [$event->event_lelang_id, $dt->lelang_id]) }}" class="btn btn-primary btn-sm">Lihat</a>
+                                    <div class="article-cta">
+                                        @if($dt->status_lelang_pivot()->where('is_aktif', true)->first()->status_lelang()->first()->nama_status == 'Selesai' || $dt->status_lelang_pivot()->where('is_aktif', true)->first()->status_lelang()->first()->nama_status == "Transaksi Lelang" ||$dt->status_lelang_pivot()->where('is_aktif', true)->first()->status_lelang()->first()->nama_status == "Verifikasi Transaksi" ||$dt->status_lelang_pivot()->where('is_aktif', true)->first()->status_lelang()->first()->nama_status == "Transaksi Selesai" ||$dt->status_lelang_pivot()->where('is_aktif', true)->first()->status_lelang()->first()->nama_status == "Verifikasi Transaksi Ditolak")
+                                        <a href="{{ route('offline.event.produk.show', [$event->event_lelang_id, $dt->lelang_id]) }}" class="btn btn-danger btn-sm"><i class="fas fa-check"></i> Selesai</a>
+                                        @else
+                                        <a href="{{ route('offline.event.produk.show', [$event->event_lelang_id, $dt->lelang_id]) }}" class="btn btn-primary btn-sm"><i class="fas fa-clock"></i> Menunggu Sesi</a>
+                                        @endif
                                     </div>
                                 </div>
                             </article>
                         </div>
                         @endforeach
-                        <div class="d-flex justify-content-center">
+                    </div>
+                    <div class="row">
+                        <div class="col-12 justify-content-center">
                             {!! $data->links() !!}
                         </div>
-                        @else 
+                    </div>
+                        @else
                         <div class="col-12 col-sm-6 col-md-6 col-lg-4">
                             <h4 class="text-center">Tidak ada Produk Lelang</h4>
                         </div>
                         @endif
-                    </div>          
                     <a href="{{ route('offline.event.show', $event->event_lelang_id) }}" class="btn btn-primary">Kembali</a>
                 </div>
             </div>

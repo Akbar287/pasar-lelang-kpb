@@ -1,7 +1,7 @@
 "use strict";
 
 const { default: Swal } = require("sweetalert2");
-import Cleave from "cleave.js"
+import Cleave from "cleave.js";
 import { Chart, registerables } from "chart.js";
 
 Chart.register(...registerables);
@@ -11,18 +11,24 @@ $(function () {
     let routeName = ($('meta[name=route]')[0].content);
     let csrf = ($('meta[name=csrf-token]')[0].content);
 
-    if(penawaranPadaHargaSatuan == null) {
-        $.ajax({
-            url: document.location.origin + '/transaksi/lelang/cek_penawaran_pada_harga_satuan_id',
-            method: 'get',
-            dataType: 'json',
-            success: function(res) {
-                penawaranPadaHargaSatuan = res.data
-            },
-            error: function(err) {console.error(err);}
-        })
-    }
+    console.log(routeName)
 
+    if(penawaranPadaHargaSatuan == null) {
+        if(location.href.includes('/transaksi/lelang') || location.href.includes('/lelang/pengajuan')) {
+            $.ajax({
+                url: document.location.origin + '/transaksi/lelang/cek_penawaran_pada_harga_satuan_id',
+                method: 'get',
+                dataType: 'json',
+                success: function(res) {
+                    penawaranPadaHargaSatuan = res.data
+                },
+                error: function(err) {console.error(err);}
+            })
+        }
+    }
+    if(routeName == 'home.saldo') {
+        $('.table-rekening-bank').DataTable();
+    }
     if($('.thousand-style').toArray().length > 0) {
         $('.thousand-style').toArray().forEach(x => {
             new Cleave(x, {
@@ -31,7 +37,54 @@ $(function () {
             });
         });
     }
+    if (routeName == 'home') {
+        $.ajax({
+            url: document.location.origin + '/home/api',
+            data: {
+                _token: csrf,
+                jenis: 'transaksi_lelang',
+            },
+            dataType: 'json',
+            method: 'get',
+            beforeSend: function() {},
+            success: function(res) {
+                new Chart(document.getElementById("chart_primary").getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ["Online", "Offline", "Hybrid"],
+                        datasets: [{
+                            label: 'Transaksi Lelang',
+                            data: [res.data.lelang.online, res.data.lelang.offline, res.data.lelang.hybrid],
+                            borderWidth: 5,
+                            borderColor: '#6777ef',
+                            backgroundColor: 'transparent',
+                            pointBorderColor: '#6777ef',
+                            pointRadius: 4
+                        }]
+                    },
+                });
+                new Chart(document.getElementById("chart_secondary").getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ["Online", "Offline", "Hybrid"],
+                        datasets: [{
+                            label: 'Produk Di Lelang',
+                            data: [res.data.produk.online, res.data.produk.offline, res.data.produk.hybrid],
+                            borderWidth: 5,
+                            borderColor: '#6777ef',
+                            backgroundColor: 'transparent',
+                            pointBorderColor: '#6777ef',
+                            pointRadius: 4
+                        }]
+                    },
+                });
+            },
+            error: function(err) {
+                console.error(err);
+            }
+        });
 
+    }
     if (routeName == 'jabatan.index') {
         $('.table-jabatan').DataTable({
             language: {
@@ -50,39 +103,219 @@ $(function () {
             ]
         });
     }
-    if(routeName == 'home') {
-        $.ajax({
-            url: document.location.origin + '/api/chart',
-            method: 'get',
-            dataType: 'json',
-            success: function(data) {
-                new Chart(document.getElementById('chart-stok'), {
-                    type: 'bar',
-                    label: 'Stok BBM',
-                    data: data.data.chart_stok,
-                    options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
+    if(routeName == 'home.profil.area.create' || routeName == 'home.profil.area.edit') {
+        $('select#provinsi_id').on('change', function(e) {
+            if(e.target.value == 0 || e.target.value == '0') {
+                $('select#kabupaten_id').attr('disabled', '').children().remove();
+                $('select#kecamatan_id').attr('disabled', '').children().remove();
+                $('select#desa_id').attr('disabled', '').children().remove();
+            } else {
+                $.ajax({
+                    url: document.location.origin + '/profil/area/create/api',
+                    method: 'get',
+                    dataType: 'json',
+                    data: {
+                        _token: csrf,
+                        jenis: 'get-kabupaten',
+                        provinsi_id: e.target.value
+                    },
+                    beforeSend: function() {
+                        $('select#kabupaten_id').children().remove();
+                        $('select#kabupaten_id').removeAttr('disabled').append('<option value="0">Loading</option>');
+                    },
+                    success: function(res) {
+                        if(res.data.kabupaten.length > 0) {
+                            $('select#kabupaten_id').removeAttr('disabled').children().remove();
+                            $('select#kabupaten_id').append('<option value="0">Pilih Kabupaten</option>');
+                            res.data.kabupaten.forEach(e => {
+                                $('select#kabupaten_id').append('<option value="'+ e.kabupaten_id +'">'+ e.nama_kabupaten +'</option>');
+                            });
+                        } else {
+                            $('select#kabupaten_id').attr('disabled', '').children().remove();
+                            $('select#kabupaten_id').append('<option value="0">Tidak Ada Kabupaten</option>');
                         }
-                    }
+                    },
+                    error: function(err) {
+                        $('select#kabupaten_id').children().remove();
+                        $('select#kabupaten_id').removeAttr('disabled').append('<option value="0">Error</option>');
+                        console.error(err);
                     }
                 });
-                new Chart(document.getElementById('chart-stok-split'), {
-                    type: 'bar',
-                    label: 'Pengeluaran Stok Tanggal 12 Juli 2023',
-                    data: data.data.chart_stok_split,
-                    options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
+            }
+        });
+
+        $('select#kabupaten_id').on('change', function(e) {
+            if(e.target.value == 0 || e.target.value == '0') {
+                $('select#kecamatan_id').attr('disabled', '').children().remove();
+                $('select#desa_id').attr('disabled', '').children().remove();
+            } else {
+                $.ajax({
+                    url: document.location.origin + '/profil/area/create/api',
+                    method: 'get',
+                    dataType: 'json',
+                    data: {
+                        _token: csrf,
+                        jenis: 'get-kecamatan',
+                        kabupaten_id: e.target.value
+                    },
+                    beforeSend: function() {
+                        $('select#kecamatan_id').children().remove();
+                        $('select#kecamatan_id').removeAttr('disabled').append('<option value="0">Loading</option>');
+                    },
+                    success: function(res) {
+                        if(res.data.kecamatan.length > 0) {
+                            $('select#kecamatan_id').removeAttr('disabled').children().remove();
+                            $('select#kecamatan_id').append('<option value="0">Pilih Kecamatan</option>');
+                            res.data.kecamatan.forEach(e => {
+                                $('select#kecamatan_id').append('<option value="'+ e.kecamatan_id +'">'+ e.nama_kecamatan +'</option>');
+                            });
+                        } else {
+                            $('select#kecamatan_id').attr('disabled', '').children().remove();
+                            $('select#kecamatan_id').append('<option value="0">Tidak Ada Kecamatan</option>');
                         }
-                    }
+                    },
+                    error: function(err) {
+                        $('select#kecamatan_id').children().remove();
+                        $('select#kecamatan_id').removeAttr('disabled').append('<option value="0">Error</option>');
+                        console.error(err);
                     }
                 });
+            }
+        });
+
+        $('select#kecamatan_id').on('change', function(e) {
+            if(e.target.value == 0 || e.target.value == '0') {
+                $('select#desa_id').attr('disabled', '').children().remove();
+            } else {
+                $.ajax({
+                    url: document.location.origin + '/profil/area/create/api',
+                    method: 'get',
+                    dataType: 'json',
+                    data: {
+                        _token: csrf,
+                        jenis: 'get-desa',
+                        kecamatan_id: e.target.value
+                    },
+                    beforeSend: function() {
+                        $('select#desa_id').children().remove();
+                        $('select#desa_id').removeAttr('disabled').append('<option value="0">Loading</option>');
+                    },
+                    success: function(res) {
+                        if(res.data.desa.length > 0) {
+                            $('select#desa_id').removeAttr('disabled').children().remove();
+                            $('select#desa_id').append('<option value="0">Pilih Desa</option>');
+                            res.data.desa.forEach(e => {
+                                $('select#desa_id').append('<option value="'+ e.desa_id +'">'+ e.nama_desa +'</option>');
+                            });
+                        } else {
+                            $('select#desa_id').attr('disabled', '').children().remove();
+                            $('select#desa_id').append('<option value="0">Tidak Ada Desa</option>');
+                        }
+                    },
+                    error: function(err) {
+                        $('select#desa_id').children().remove();
+                        $('select#desa_id').removeAttr('disabled').append('<option value="0">Error</option>');
+                        console.error(err);
+                    }
+                });
+            }
+        });
+    }
+    if(routeName == 'home.profil.area') {
+        $('.table-area-profile').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
             },
-            error: function(err) {console.error(err)}
-        })
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'area_member_id', name: 'area_member_id'},
+                {data: 'nama_provinsi', name: 'nama_provinsi'},
+                {data: 'nama_kabupaten', name: 'nama_kabupaten'},
+                {data: 'nama_kecamatan', name: 'nama_kecamatan'},
+                {data: 'nama_desa', name: 'nama_desa'},
+                {data: 'alamat', name: 'alamat'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'home.profil.dokumen') {
+        $('.table-dokumen-profil').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'jenis_dokumen', name: 'jenis_dokumen'},
+                {data: 'tanggal_unggah', name: 'tanggal_unggah'},
+                {data: 'nama_dokumen', name: 'nama_dokumen'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'home.profil.rekening_bank.create' || routeName == 'home.profil.rekening_bank.edit') {
+        $("select#bank_id").select2({
+            tags: true
+        });
+        $("select#mata_uang").select2({
+            tags: true
+        });
+    }
+    if(routeName == 'home.profil.rekening_bank') {
+        $('.table-rekening-bank-profil').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'bank', name: 'bank'},
+                {data: 'nomor_rekening', name: 'nomor_rekening'},
+                {data: 'saldo', name: 'saldo'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'home.saldo.riwayat') {
+        $('.table-riwayat-saldo').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'tanggal', name: 'tanggal'},
+                {data: 'rekening_bank', name: 'rekening_bank'},
+                {data: 'jenis_transaksi', name: 'jenis_transaksi'},
+                {data: 'jumlah', name: 'jumlah'},
+                {data: 'status', name: 'status'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'home.saldo.jaminan') {
+        $('.table-jaminan').DataTable();
+    }
+    if(routeName == 'home.saldo.jaminan.riwayat') {
+        $('.table-riwayat-jaminan').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'tanggal', name: 'tanggal'},
+                {data: 'jenis', name: 'jenis'},
+                {data: 'jumlah', name: 'jumlah'},
+                {data: 'status', name: 'status'},
+            ]
+        });
     }
     if(routeName == 'master.anggota.calon') {
         $('.table-calon-anggota').DataTable({
@@ -136,7 +369,7 @@ $(function () {
                         $('select#desa_lembaga').attr('disabled', '').children().remove();
                     }
                     $('select#kabupaten_lembaga').removeAttr('disabled').append(`<option value="0">Pilih Kabupaten</option>`)
-                    res.data.forEach(d => 
+                    res.data.forEach(d =>
                         $('select#kabupaten_lembaga').append(`<option value="${d.kabupaten_id}">${d.nama_kabupaten}</option>`)
                     )
                 },
@@ -145,7 +378,7 @@ $(function () {
                 }
             })
         })
-        
+
         $('select#kabupaten_lembaga').on('change', function() {
             $.ajax({
                 url: document.location.origin + '/home/kecamatan/' + $(this).val(),
@@ -157,7 +390,7 @@ $(function () {
                         $('select#desa_lembaga').attr('disabled', '').children().remove();
                     }
                     $('select#kecamatan_lembaga').removeAttr('disabled').append(`<option value="0">Pilih Kecamatan</option>`)
-                    res.data.forEach(d => 
+                    res.data.forEach(d =>
                         $('select#kecamatan_lembaga').append(`<option value="${d.kecamatan_id}">${d.nama_kecamatan}</option>`)
                     )
                 },
@@ -166,7 +399,7 @@ $(function () {
                 }
             })
         })
-        
+
         $('select#kecamatan_lembaga').on('change', function() {
             $.ajax({
                 url: document.location.origin + '/home/desa/' + $(this).val(),
@@ -177,7 +410,7 @@ $(function () {
                         $('select#desa_lembaga').attr('disabled', '').children().remove();
                     }
                     $('select#desa_lembaga').removeAttr('disabled').append(`<option value="0">Pilih Desa</option>`)
-                    res.data.forEach(d => 
+                    res.data.forEach(d =>
                         $('select#desa_lembaga').append(`<option value="${d.desa_id}">${d.nama_desa}</option>`)
                     )
                 },
@@ -186,7 +419,7 @@ $(function () {
                 }
             })
         })
-        
+
         $('select#provinsi').on('change', function() {
             $.ajax({
                 url: document.location.origin + '/home/kabupaten/' + $(this).val(),
@@ -199,7 +432,7 @@ $(function () {
                         $('select#desa').attr('disabled', '').children().remove();
                     }
                     $('select#kabupaten').removeAttr('disabled').append(`<option value="0">Pilih Kabupaten</option>`)
-                    res.data.forEach(d => 
+                    res.data.forEach(d =>
                         $('select#kabupaten').append(`<option value="${d.kabupaten_id}">${d.nama_kabupaten}</option>`)
                     )
                 },
@@ -208,7 +441,7 @@ $(function () {
                 }
             })
         })
-        
+
         $('select#kabupaten').on('change', function() {
             $.ajax({
                 url: document.location.origin + '/home/kecamatan/' + $(this).val(),
@@ -220,7 +453,7 @@ $(function () {
                         $('select#desa').attr('disabled', '').children().remove();
                     }
                     $('select#kecamatan').removeAttr('disabled').append(`<option value="0">Pilih Kecamatan</option>`)
-                    res.data.forEach(d => 
+                    res.data.forEach(d =>
                         $('select#kecamatan').append(`<option value="${d.kecamatan_id}">${d.nama_kecamatan}</option>`)
                     )
                 },
@@ -229,7 +462,7 @@ $(function () {
                 }
             })
         })
-        
+
         $('select#kecamatan').on('change', function() {
             $.ajax({
                 url: document.location.origin + '/home/desa/' + $(this).val(),
@@ -240,15 +473,15 @@ $(function () {
                         $('select#desa').attr('disabled', '').children().remove();
                     }
                     $('select#desa').removeAttr('disabled').append(`<option value="0">Pilih Desa</option>`)
-                    res.data.forEach(d => 
+                    res.data.forEach(d =>
                         $('select#desa').append(`<option value="${d.desa_id}">${d.nama_desa}</option>`)
                     )
                 },
                 error: function(err) {
                     console.error("Terjadi kesalahan saat ambil data kecamatan: " + err)
                 }
-            })
-        })
+            });
+        });
     }
     if(routeName == 'master.anggota.list.area.index') {
         $('.table-area-member').DataTable({
@@ -302,6 +535,7 @@ $(function () {
                 {data: 'nama_pemilik', name: 'nama_pemilik'},
                 {data: 'cabang', name: 'cabang'},
                 {data: 'mata_uang', name: 'mata_uang'},
+                {data: 'saldo', name: 'saldo'},
                 {data: 'action', name: 'action', orderable: false, searchable: false},
             ]
         });
@@ -440,7 +674,7 @@ $(function () {
                     jenis: 'informasi_akun',
                     informasi_akun_id: e.target.value,
                 },
-                dataType: 'json', 
+                dataType: 'json',
                 method: 'get',
                 success: function(data) {
                     if(data.data.length > 0) {
@@ -494,7 +728,7 @@ $(function () {
                         jenis: 'kontrak_detail_komoditas',
                         kontrak_id: e.target.value,
                     },
-                    dataType: 'json', 
+                    dataType: 'json',
                     method: 'get',
                     success: function(data) {
                         $('#kode_komoditas').text(data.data.komoditas_id);
@@ -528,7 +762,7 @@ $(function () {
             }
         })
         $('input[name=jenis_harga_id]').on('change', function(e) {
-            
+            console.log('ok')
             if(e.target.value === penawaranPadaHargaSatuan) {
                 $('.harga_satuan').removeClass('d-none');
             } else {
@@ -546,6 +780,7 @@ $(function () {
             ajax: document.location.href,
             columns: [
                 {data: 'dokumen_produk_id', name: 'dokumen_produk_id'},
+                {data: 'jenis_dokumen', name: 'jenis_dokumen'},
                 {data: 'gambar', name: 'gambar'},
                 {data: 'nama_dokumen', name: 'nama_dokumen'},
                 {data: 'action', name: 'action', orderable: false, searchable: false},
@@ -572,10 +807,10 @@ $(function () {
     if(routeName == 'offline.operator.create' || routeName == 'offline.operator.edit') {
         $('#button-check').on('click', function(e) {
             if($(this).siblings('input').attr('type') == 'text') {
-                $(this).siblings('input').attr('type', 'password'); 
+                $(this).siblings('input').attr('type', 'password');
                 $(this).children().children().addClass('fa-eye').removeClass('fa-eye-slash')
             } else {
-                $(this).siblings('input').attr('type', 'text'); 
+                $(this).siblings('input').attr('type', 'text');
                 $(this).children().children().removeClass('fa-eye').addClass('fa-eye-slash')
             }
         })
@@ -663,33 +898,38 @@ $(function () {
             ]
         });
     }
-    if(routeName == 'online.event') {
+    if(routeName == 'online.event' || routeName == 'online.event.history') {
         $('.table-lelang-event').DataTable({
             language: {
                 url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
             },
             processing: true,
             serverSide: true,
+            dataType: 'json',
+            data: {
+                _token: csrf,
+                x: 'ok'
+            },
             ajax: document.location.href,
             columns: [
                 {data: 'penyelenggara', name: 'penyelenggara'},
                 {data: 'tanggal', name: 'tanggal'},
                 {data: 'sesi', name: 'sesi'},
-                {data: 'produk', name: 'produk'},
+                {data: 'judul', name: 'judul'},
+                {data: 'harga_awal', name: 'harga_awal'},
+                {data: 'kelipatan_harga', name: 'kelipatan_harga'},
+                {data: 'total', name: 'total'},
                 {data: 'action', name: 'action', orderable: false, searchable: false},
             ]
         });
     }
-    if(routeName == 'offline.event') {
+    if(routeName == 'offline.event' || routeName == 'offline.event.history') {
         $('.table-lelang-event').DataTable({
             language: {
                 url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
             },
             processing: true,
             serverSide: true,
-            data: {
-                tes: 'x'
-            },
             ajax: document.location.href,
             columns: [
                 {data: 'event_kode', name: 'event_kode'},
@@ -790,7 +1030,7 @@ $(function () {
             ]
         });
     }
-    if(routeName == 'master.kontrak.pengaturan' || routeName == 'master.kontrak.verifikasi' || routeName == 'master.kontrak.verifikasi.riwayat' || routeName == 'master.kontrak.list' || routeName == 'master.kontrak.nonaktif') {
+    if(routeName == 'master.kontrak.pengaturan' || routeName == 'master.kontrak.verifikasi.riwayat' || routeName == 'master.kontrak.list' || routeName == 'master.kontrak.nonaktif') {
         $('.table-pengaturan-kontrak').DataTable({
             language: {
                 url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
@@ -800,6 +1040,210 @@ $(function () {
             ajax: document.location.href,
             columns: [
                 {data: 'kontrak_id', name: 'kontrak_id'},
+                {data: 'komoditas', name: 'nama'},
+                {data: 'jenis_perdagangan', name: 'jenis_perdagangan'},
+                {data: 'username', name: 'username'},
+                {data: 'status', name: 'status'},
+                {data: 'created_at', name: 'created_at'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'lelang.pengajuan.file') {
+        $('.table-lelang-dokumen-user').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'dokumen_produk_id', name: 'dokumen_produk_id'},
+                {data: 'jenis_dokumen', name: 'jenis_dokumen'},
+                {data: 'gambar', name: 'gambar'},
+                {data: 'nama_dokumen', name: 'nama_dokumen'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'online.list.lelang_sesi') {
+        $('.bid_btn').on('click', function () {
+            if(isNaN(parseInt($('#kode_peserta').text()))) {
+                window.alert('Anda harus bergabung ke sesi lelang ini.');
+            } else {
+                $.ajax({
+                    url: document.location.pathname + '/api',
+                    data: {
+                        'peserta': isNaN(parseInt($('#kode_peserta').text())) ? 0 : parseInt($('#kode_peserta').text()),
+                        'harga': harga_awal,
+                        'waktu': count,
+                        'code': 'penawaran',
+                        '_token': csrf
+                    },
+                    dataType: 'json',
+                    method: 'post',
+                    success: function(res) {
+                        if(res.status == 'failed') {
+                            window.alert(res.message)
+                        }
+                    },
+                    error: function(err) {console.error(err)},
+                });
+            }
+        });
+
+        let kelipatan_harga = parseInt($('#kelipatan_harga').text().replaceAll(',', ''));
+        $(function() {
+            setInterval(function() {
+                $.ajax({
+                    url: document.location.pathname + '/api',
+                    data:{
+                        'code': 'getAnyRequest',
+                        '_token': csrf,
+                        'peserta': 0
+                    },
+                    dataType: 'json',
+                    method: 'post',
+                    success: function(res) {
+
+                        if(res.data.done) {
+                            // Selesai
+                            $('.bid_btn').addClass('d-none').removeClass('d-block');
+                            $('.waiting_btn').addClass('d-none').removeClass('d-block');
+                            $('.closed_btn').removeClass('d-none').addClass('d-block');
+                        } else {
+                            if(!res.data.aktif) {
+                                // Belum Mulai
+                                $('.closed_btn').addClass('d-none').removeClass('d-block');
+                                $('.bid_btn').addClass('d-none').removeClass('d-block');
+                                $('.waiting_btn').removeClass('d-none').addClass('d-block');
+                            } else {
+                                // Aktif
+                                $('.waiting_btn').addClass('d-none').removeClass('d-block');
+                                $('.closed_btn').addClass('d-none').removeClass('d-block');
+                                $('.bid_btn').removeClass('d-none').addClass('d-block');
+                            }
+                        }
+
+                        var hours = ("0" + Math.floor(res.data.count / 3600)).slice(-2);
+                        var minutes = ("0" + Math.floor((res.data.count - (hours * 3600)) / 60)).slice(-2);
+                        var seconds = ("0" + (res.data.count - (hours * 3600) - (minutes * 60))).slice(-2);
+                        document.getElementById("time").innerHTML = hours + ":" + minutes + ":" + seconds;
+
+                        if(res.data.riwayat.length > 0) {
+                            if(res.data.aktif) {
+                                $('#show_price').text((Intl.NumberFormat().format(parseInt(res.data.riwayat[res.data.riwayat.length - 1].harga_ajuan.split('.')[0]) + parseInt(kelipatan_harga))).replaceAll('.', ','));
+                            } else {
+                                $('#show_price').text((Intl.NumberFormat().format(parseInt(res.data.riwayat[res.data.riwayat.length - 1].harga_ajuan.split('.')[0]))).replaceAll('.', ','));
+                            }
+
+                            $('.riwayat_penawaran').children().remove();
+                            res.data.riwayat.forEach(x => {
+                                var hours = ("0" + Math.floor(x.waktu / 3600)).slice(-2);
+                                var minutes = ("0" + Math.floor((x.waktu - (hours * 3600)) / 60)).slice(-2);
+                                var seconds = ("0" + (x.waktu - (hours * 3600) - (minutes * 60))).slice(-2);
+
+                                    if($('div.riwayat_penawaran').children('p').length == 1) {
+                                        $('.riwayat_penawaran').children('p').remove();
+                                        $('.riwayat_penawaran').append('<ul class="list-group"><li class="list-group-item d-flex justify-content-between align-items-center"><span class="badge badge-primary badge-pill">' + x.kode_peserta_lelang + '</span> <div>' + hours + ":" + minutes + ":" + seconds + '</div> Rp. ' + (Intl.NumberFormat().format(x.harga_ajuan)).replaceAll('.', ',') + '</li></ul>');
+                                    } else {
+                                        if($('div.riwayat_penawaran').children('ul').length == 0) {
+                                            $('.riwayat_penawaran').append('<ul class="list-group"><li class="list-group-item d-flex justify-content-between align-items-center"><span class="badge badge-primary badge-pill">' + x.kode_peserta_lelang + '</span> <div>' + hours + ":" + minutes + ":" + seconds + '</div> Rp. ' + (Intl.NumberFormat().format(x.harga_ajuan)).replaceAll('.', ',') + '</li></ul>');
+                                        } else {
+                                            $('.riwayat_penawaran').children('ul.list-group').prepend('<li class="list-group-item d-flex justify-content-between align-items-center"><span class="badge badge-primary badge-pill">' + x.kode_peserta_lelang + '</span> <div>' + hours + ":" + minutes + ":" + seconds + '</div> Rp. ' + (Intl.NumberFormat().format(x.harga_ajuan)).replaceAll('.', ',') + '</li>');
+                                        }
+                                    }
+                            });
+                        }
+                    }, error: function(err) {
+                        console.error(err);
+                    }
+                });
+            }, 1000);
+        });
+    }
+    if(routeName == 'online.event.sesi') {
+        // Admin
+        let kelipatan_harga = parseInt($('#kelipatan_harga').text().replace(',', ''));
+        $(function() {
+            setInterval(function() {
+                $.ajax({
+                    url: document.location.pathname + '/api',
+                    data:{
+                        'code': 'getAnyRequest',
+                        '_token': csrf,
+                        'peserta': 0
+                    },
+                    dataType: 'json',
+                    method: 'post',
+                    success: function(res) {
+                        if(res.data.done) {
+                            // Selesai
+                            $('.bid_btn').addClass('d-none').removeClass('d-block');
+                            $('.waiting_btn').addClass('d-none').removeClass('d-block');
+                            $('.closed_btn').removeClass('d-none').addClass('d-block');
+                        } else {
+                            if(!res.data.aktif) {
+                                // Belum Mulai
+                                $('.closed_btn').addClass('d-none').removeClass('d-block');
+                                $('.bid_btn').addClass('d-none').removeClass('d-block');
+                                $('.waiting_btn').removeClass('d-none').addClass('d-block');
+                            } else {
+                                // Aktif
+                                $('.waiting_btn').addClass('d-none').removeClass('d-block');
+                                $('.closed_btn').addClass('d-none').removeClass('d-block');
+                                $('.bid_btn').removeClass('d-none').addClass('d-block');
+                            }
+                        }
+
+                        var hours = ("0" + Math.floor(res.data.count / 3600)).slice(-2);
+                        var minutes = ("0" + Math.floor((res.data.count - (hours * 3600)) / 60)).slice(-2);
+                        var seconds = ("0" + (res.data.count - (hours * 3600) - (minutes * 60))).slice(-2);
+                        document.getElementById("time").innerHTML = hours + ":" + minutes + ":" + seconds;
+
+                        if(res.data.riwayat.length > 0) {
+                            if(res.data.aktif) {
+                                $('#show_price').text((Intl.NumberFormat().format(parseInt(res.data.riwayat[res.data.riwayat.length - 1].harga_ajuan.split('.')[0]) + parseInt(kelipatan_harga))).replaceAll('.', ','));
+                            } else {
+                                $('#show_price').text((Intl.NumberFormat().format(parseInt(res.data.riwayat[res.data.riwayat.length - 1].harga_ajuan.split('.')[0]))).replaceAll('.', ','));
+                            }
+
+                            $('.riwayat_penawaran').children().remove();
+                            res.data.riwayat.forEach(x => {
+                                var hours = ("0" + Math.floor(x.waktu / 3600)).slice(-2);
+                                var minutes = ("0" + Math.floor((x.waktu - (hours * 3600)) / 60)).slice(-2);
+                                var seconds = ("0" + (x.waktu - (hours * 3600) - (minutes * 60))).slice(-2);
+
+                                    if($('div.riwayat_penawaran').children('p').length == 1) {
+                                        $('.riwayat_penawaran').children('p').remove();
+                                        $('.riwayat_penawaran').append('<ul class="list-group"><li class="list-group-item d-flex justify-content-between align-items-center"><span class="badge badge-primary badge-pill">' + x.kode_peserta_lelang + '</span> <div>' + hours + ":" + minutes + ":" + seconds + '</div> Rp. ' + (Intl.NumberFormat().format(x.harga_ajuan)).replaceAll('.', ',') + '</li></ul>');
+                                    } else {
+                                        if($('div.riwayat_penawaran').children('ul').length == 0) {
+                                            $('.riwayat_penawaran').append('<ul class="list-group"><li class="list-group-item d-flex justify-content-between align-items-center"><span class="badge badge-primary badge-pill">' + x.kode_peserta_lelang + '</span> <div>' + hours + ":" + minutes + ":" + seconds + '</div> Rp. ' + (Intl.NumberFormat().format(x.harga_ajuan)).replaceAll('.', ',') + '</li></ul>');
+                                        } else {
+                                            $('.riwayat_penawaran').children('ul.list-group').prepend('<li class="list-group-item d-flex justify-content-between align-items-center"><span class="badge badge-primary badge-pill">' + x.kode_peserta_lelang + '</span> <div>' + hours + ":" + minutes + ":" + seconds + '</div> Rp. ' + (Intl.NumberFormat().format(x.harga_ajuan)).replaceAll('.', ',') + '</li>');
+                                        }
+                                    }
+                            });
+                        }
+                    }, error: function(err) {
+                        console.error(err);
+                    }
+                });
+            }, 1000);
+        });
+    }
+    if(routeName == 'master.kontrak.verifikasi') {
+        $('.table-pengaturan-kontrak').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'kontrak_id', name: 'kontrak_id'},
+                {data: 'nama_member', name: 'nama_member'},
                 {data: 'komoditas', name: 'nama'},
                 {data: 'jenis_perdagangan', name: 'jenis_perdagangan'},
                 {data: 'username', name: 'username'},
@@ -831,6 +1275,232 @@ $(function () {
             tags: true
         });
     }
+    if(routeName == 'kontrak.pengajuan.create' || routeName == 'kontrak.pengajuan.edit') {
+        $("select#penyelenggara_pasar_lelang_id").select2({
+            tags: true
+        });
+        $("select#jenis_perdagangan_id").select2({
+            tags: true
+        });
+        $("select#komoditas_id").select2({
+            tags: true
+        });
+        $("select#mutu_id").select2({
+            tags: true
+        });
+    }
+    if(routeName == 'kontrak.pengajuan' || routeName == 'kontrak.list') {
+        $('.table-kontrak-user').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'penyelenggara', name: 'penyelenggara'},
+                {data: 'komoditas', name: 'komoditas'},
+                {data: 'jenis_perdagangan', name: 'jenis_perdagangan'},
+                {data: 'status', name: 'status'},
+                {data: 'created_at', name: 'created_at'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'lelang.transaksi') {
+        $('.table-lelang-user').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'nomor_lelang', name: 'nomor_lelang'},
+                {data: 'judul', name: 'judul'},
+                {data: 'kuantitas', name: 'kuantitas'},
+                {data: 'harga_awal', name: 'harga_awal'},
+                {data: 'harga_pemenang', name: 'harga_pemenang'},
+                {data: 'status', name: 'status'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'lelang.transaksi.show') {
+        $('.rekening_bank_pembeli').on('change', function(e) {
+            let hargaBayar = $('#total_yang_harus_dibayar').val().replaceAll(',', '', true);
+
+            $.ajax({
+                url: document.location.origin + '/profil/rekening_bank/' + e.target.value + '/get-saldo',
+                method: 'get',
+                data: {
+                    _token: csrf,
+                },
+                dataType: 'json',
+                success: function(res) {
+                    if(res.data - hargaBayar >= 0) {
+                        // Dana Cukup
+                        $('.informasi-saldo').html('Saldo Anda: <span class="text-success">Rp. '+ Intl.NumberFormat().format(res.data) +'</span> Masih Ada Sisa Dana Sebesar <span class="text-primary">Rp. '+ Intl.NumberFormat().format(parseInt(res.data) - parseInt(hargaBayar)) +'</span>')
+                    } else {
+                        // Dana kurang
+                        $('.informasi-saldo').html('Saldo Anda: <span class="text-success">Rp. '+ Intl.NumberFormat().format(res.data) +'</span> Terdapat Kekurangan dana sebesar: <span class="text-danger">Rp. '+ Intl.NumberFormat().format(parseInt(hargaBayar) - parseInt(res.data))  +'</span>')
+                    }
+                },
+                error: function(err) {
+                    console.error(err);
+                }
+            })
+        })
+    }
+    if(routeName == 'lelang.pengajuan.create' || routeName == 'lelang.pengajuan.edit') {
+        $("select#jenis_perdagangan_id").select2({
+            tags: true
+        });
+        $("select#informasi_akun_id").select2({
+            tags: true
+        });
+        $("select#komoditas_id").select2({
+            tags: true
+        });
+        $("select#jenis_inisiasi_id").select2({
+            tags: true
+        });
+        $('select#kontrak_id').on('change', function(e) {
+            $.ajax({
+                url: document.location.origin + '/transaksi/lelang_baru/option',
+                data: {
+                    jenis: 'kontrak_detail_komoditas',
+                    kontrak_id: e.target.value,
+                },
+                dataType: 'json',
+                method: 'get',
+                success: function(data) {
+                    $('#kode_komoditas').text(data.data.komoditas_id);
+                    $('#isi_komoditas').text(data.data.nama_komoditas);
+                    $('#isi_satuan_transaksi').text(Intl.NumberFormat('id-ID', {style: 'currency' ,currency: 'IDR', }).format(data.data.minimum_transaksi));
+                    $('#isi_jenis_perdagangan').text(data.data.nama_perdagangan);
+                    $('#isi_max_transaksi').text(Intl.NumberFormat('id-ID', {style: 'currency' ,currency: 'IDR', }).format(data.data.maksimum_transaksi));
+                    $('#isi_mutu').text(data.data.nama_mutu);
+                    $('#isi_uom').text(data.data.satuan_ukuran);
+                    $('span.kuantitas').removeClass('d-none').html(data.data.satuan_ukuran)
+                    $(".no-kontrak").addClass('d-none');
+                    $(".table-rincian-kontrak").removeClass('d-none');
+                },
+                error: function(err) {return err;}
+            });
+        });
+        $('#harga_beli_sekarang').on('change', function(e) {
+            if(e.currentTarget.checked) {
+                $('.harga_beli_sekarang_wrapper').removeClass('d-none');
+            } else {
+                $('.harga_beli_sekarang_wrapper').addClass('d-none');
+            }
+        })
+        $('input[name=jenis_harga_id]').on('change', function(e) {
+
+            if(e.target.value === penawaranPadaHargaSatuan) {
+                $('.harga_satuan').removeClass('d-none');
+            } else {
+                $('.harga_satuan').addClass('d-none');
+            }
+        })
+    }
+    if(routeName == 'lelang.pengajuan' || routeName == 'lelang.list') {
+        $('.table-lelang-user').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'kontrak_kode', name: 'kontrak_kode'},
+                {data: 'nomor_lelang', name: 'nomor_lelang'},
+                {data: 'judul', name: 'judul'},
+                {data: 'kuantitas', name: 'kuantitas'},
+                {data: 'harga_awal', name: 'harga_awal'},
+                {data: 'kelipatan_penawaran', name: 'kelipatan_penawaran'},
+                {data: 'status', name: 'status'},
+                {data: 'created_at', name: 'created_at'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'online.list' || routeName =='online.history') {
+        $('.table-sesi-lelang').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'tanggal', name: 'tanggal'},
+                {data: 'sesi', name: 'sesi'},
+                {data: 'produk', name: 'produk'},
+                {data: 'anggota', name: 'anggota'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'online.list.show' || routeName == 'offline.list.show') {
+        $('.table-sesi-lelang').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'penjual', name: 'penjual'},
+                {data: 'gambar', name: 'gambar'},
+                {data: 'nama_produk', name: 'nama_produk'},
+                {data: 'kuantitas', name: 'kuantitas'},
+                {data: 'harga_awal', name: 'harga_awal'},
+                {data: 'kelipatan', name: 'kelipatan'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'online.history.show') {
+        $('.table-sesi-lelang').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'penjual', name: 'penjual'},
+                {data: 'gambar', name: 'gambar'},
+                {data: 'nama_produk', name: 'nama_produk'},
+                {data: 'kuantitas', name: 'kuantitas'},
+                {data: 'kode_peserta', name: 'kode_peserta'},
+                {data: 'harga_awal', name: 'harga_awal'},
+                {data: 'kelipatan', name: 'kelipatan'},
+                {data: 'harga_pemenang', name: 'harga_pemenang'},
+            ]
+        });
+    }
+    if(routeName == 'offline.list' || routeName =='offline.history') {
+        $('.table-sesi-lelang').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'nama', name: 'nama'},
+                {data: 'event_kode', name: 'event_kode'},
+                {data: 'nama_lelang', name: 'nama_lelang'},
+                {data: 'tanggal_lelang', name: 'tanggal_lelang'},
+                {data: 'jam', name: 'jam'},
+                {data: 'jenis', name: 'jenis'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
     if(routeName == 'master.anggota.calon.create' || routeName == 'master.anggota.calon.edit') {
         $('input[name=jenis_perseorangan]').on('change', function() {
             if($(this).val() == 'perseorangan') {
@@ -854,18 +1524,22 @@ $(function () {
                         $('select#kabupaten_lembaga').attr('disabled', '').children().remove();
                         $('select#kecamatan_lembaga').attr('disabled', '').children().remove();
                         $('select#desa_lembaga').attr('disabled', '').children().remove();
+                    } else {
+                        $('select#kabupaten_lembaga').children().remove();
+                        $('select#kecamatan_lembaga').attr('disabled', '').children().remove();
+                        $('select#desa_lembaga').attr('disabled', '').children().remove();
+                        $('select#kabupaten_lembaga').removeAttr('disabled').append(`<option value="0">Pilih Kabupaten</option>`)
+                        res.data.forEach(d =>
+                            $('select#kabupaten_lembaga').append(`<option value="${d.kabupaten_id}">${d.nama_kabupaten}</option>`)
+                        )
                     }
-                    $('select#kabupaten_lembaga').removeAttr('disabled').append(`<option value="0">Pilih Kabupaten</option>`)
-                    res.data.forEach(d => 
-                        $('select#kabupaten_lembaga').append(`<option value="${d.kabupaten_id}">${d.nama_kabupaten}</option>`)
-                    )
                 },
                 error: function(err) {
                     console.error("Terjadi kesalahan saat ambil data kabupaten: " + err)
                 }
             })
         })
-        
+
         $('select#kabupaten_lembaga').on('change', function() {
             $.ajax({
                 url: document.location.origin + '/home/kecamatan/' + $(this).val(),
@@ -875,18 +1549,21 @@ $(function () {
                     if(res.data.length == 0) {
                         $('select#kecamatan_lembaga').attr('disabled', '').children().remove();
                         $('select#desa_lembaga').attr('disabled', '').children().remove();
+                    } else {
+                        $('select#kecamatan_lembaga').children().remove();
+                        $('select#desa_lembaga').attr('disabled', '').children().remove();
+                        $('select#kecamatan_lembaga').removeAttr('disabled').append(`<option value="0">Pilih Kecamatan</option>`)
+                        res.data.forEach(d =>
+                            $('select#kecamatan_lembaga').append(`<option value="${d.kecamatan_id}">${d.nama_kecamatan}</option>`)
+                        )
                     }
-                    $('select#kecamatan_lembaga').removeAttr('disabled').append(`<option value="0">Pilih Kecamatan</option>`)
-                    res.data.forEach(d => 
-                        $('select#kecamatan_lembaga').append(`<option value="${d.kecamatan_id}">${d.nama_kecamatan}</option>`)
-                    )
                 },
                 error: function(err) {
                     console.error("Terjadi kesalahan saat ambil data kecamatan: " + err)
                 }
             })
         })
-        
+
         $('select#kecamatan_lembaga').on('change', function() {
             $.ajax({
                 url: document.location.origin + '/home/desa/' + $(this).val(),
@@ -895,19 +1572,21 @@ $(function () {
                 success: function(res) {
                     if(res.data.length == 0) {
                         $('select#desa_lembaga').attr('disabled', '').children().remove();
+                    } else {
+                        $('select#desa_lembaga').children().remove();
+                        $('select#desa_lembaga').removeAttr('disabled').append(`<option value="0">Pilih Desa</option>`)
+                        res.data.forEach(d =>
+                            $('select#desa_lembaga').append(`<option value="${d.desa_id}">${d.nama_desa}</option>`)
+                        )
                     }
-                    $('select#desa_lembaga').removeAttr('disabled').append(`<option value="0">Pilih Desa</option>`)
-                    res.data.forEach(d => 
-                        $('select#desa_lembaga').append(`<option value="${d.desa_id}">${d.nama_desa}</option>`)
-                    )
                 },
                 error: function(err) {
                     console.error("Terjadi kesalahan saat ambil data kecamatan: " + err)
                 }
             })
         })
-        
-        $('select#provinsi').on('change', function() {
+
+        $('select#provinsi').on('change', function(e) {
             $.ajax({
                 url: document.location.origin + '/home/kabupaten/' + $(this).val(),
                 method: 'get',
@@ -917,18 +1596,22 @@ $(function () {
                         $('select#kabupaten').attr('disabled', '').children().remove();
                         $('select#kecamatan').attr('disabled', '').children().remove();
                         $('select#desa').attr('disabled', '').children().remove();
+                    } else {
+                        $('select#kecamatan').attr('disabled', '').children().remove();
+                        $('select#desa').attr('disabled', '').children().remove();
+                        $('select#kabupaten').children().remove();
+                        $('select#kabupaten').removeAttr('disabled').append(`<option value="0">Pilih Kabupaten</option>`)
+                        res.data.forEach(d =>
+                            $('select#kabupaten').append(`<option value="${d.kabupaten_id}">${d.nama_kabupaten}</option>`)
+                        )
                     }
-                    $('select#kabupaten').removeAttr('disabled').append(`<option value="0">Pilih Kabupaten</option>`)
-                    res.data.forEach(d => 
-                        $('select#kabupaten').append(`<option value="${d.kabupaten_id}">${d.nama_kabupaten}</option>`)
-                    )
                 },
                 error: function(err) {
                     console.error("Terjadi kesalahan saat ambil data kabupaten: " + err)
                 }
             })
         })
-        
+
         $('select#kabupaten').on('change', function() {
             $.ajax({
                 url: document.location.origin + '/home/kecamatan/' + $(this).val(),
@@ -938,18 +1621,21 @@ $(function () {
                     if(res.data.length == 0) {
                         $('select#kecamatan').attr('disabled', '').children().remove();
                         $('select#desa').attr('disabled', '').children().remove();
+                    } else {
+                        $('select#desa').attr('disabled', '').children().remove();
+                        $('select#kecamatan').children().remove();
+                        $('select#kecamatan').removeAttr('disabled').append(`<option value="0">Pilih Kecamatan</option>`)
+                        res.data.forEach(d =>
+                            $('select#kecamatan').append(`<option value="${d.kecamatan_id}">${d.nama_kecamatan}</option>`)
+                        )
                     }
-                    $('select#kecamatan').removeAttr('disabled').append(`<option value="0">Pilih Kecamatan</option>`)
-                    res.data.forEach(d => 
-                        $('select#kecamatan').append(`<option value="${d.kecamatan_id}">${d.nama_kecamatan}</option>`)
-                    )
                 },
                 error: function(err) {
                     console.error("Terjadi kesalahan saat ambil data kecamatan: " + err)
                 }
             })
         })
-        
+
         $('select#kecamatan').on('change', function() {
             $.ajax({
                 url: document.location.origin + '/home/desa/' + $(this).val(),
@@ -958,11 +1644,13 @@ $(function () {
                 success: function(res) {
                     if(res.data.length == 0) {
                         $('select#desa').attr('disabled', '').children().remove();
+                    } else {
+                        $('select#desa').children().remove();
+                        $('select#desa').removeAttr('disabled').append(`<option value="0">Pilih Desa</option>`)
+                        res.data.forEach(d =>
+                            $('select#desa').append(`<option value="${d.desa_id}">${d.nama_desa}</option>`)
+                        )
                     }
-                    $('select#desa').removeAttr('disabled').append(`<option value="0">Pilih Desa</option>`)
-                    res.data.forEach(d => 
-                        $('select#desa').append(`<option value="${d.desa_id}">${d.nama_desa}</option>`)
-                    )
                 },
                 error: function(err) {
                     console.error("Terjadi kesalahan saat ambil data kecamatan: " + err)
@@ -985,7 +1673,7 @@ $(function () {
         $('.custom-file-input').on('change', function(e) {
             let id = $(this).attr('id');
             let lembaga = $(this).hasClass('lembaga')
-            
+
             $(this).siblings().text(e.target.value.split("fakepath")[1]);
             var input = $(e.currentTarget);
             var file = input[0].files[0];
@@ -1058,7 +1746,7 @@ $(function () {
             tags: true
         });
     }
-    if(routeName == 'offline.event.produk.show') {
+    if(routeName == 'offline.event.produk.show' || routeName == 'online.event.history.show' || routeName == 'online.event.show') {
         $('#imageGallery').lightSlider({
             gallery:true,
             item:1,
@@ -1067,28 +1755,277 @@ $(function () {
             slideMargin:0,
             enableDrag: false,
             currentPagerPosition:'left',
-        });      
+        });
+
+        $(document).on('click', '.minus_penyerahan', function(e) {
+            $(this).parent().parent().remove()
+        });
+
+        $('#plus_penyerahan').on('click', function() {
+            let num = $('.body-penyerahan').children().length;
+            $('.body-penyerahan').append('<tr><td><input type="date" class="form-control" name="waktu_penyerahan[]" /></td><td><input type="text" class="form-control" name="volume_penyerahan[]" /></td><td><button type="button" data-index="'+(num+1)+'" class="btn btn-sm btn-danger minus_penyerahan"><i class="fas fa-minus"></i></button></td></tr>')
+        });
+
+        $('.btn-custom-penjual').on('click', function(e) {
+            $('.btn-tutup-custom').removeClass('d-none');
+            $('.form-custom-buyer').removeClass('d-none');
+            $('.btn-custom-penjual').addClass('d-none');
+        });
+        $('.btn-tutup-custom').on('click', function(e) {
+            $('.btn-custom-penjual').removeClass('d-none');
+            $('.form-custom-buyer').addClass('d-none');
+            $('.btn-tutup-custom').addClass('d-none');
+        });
+
+
     }
-    if(routeName == 'offline.event.produk.sesi') {
+    if(routeName == 'offline.list.sesi_lelang') {
         var count = 0;
-        var intervalId = null;
         var kodeBelow = 0;
         var harga_awal = $('#harga_awal').text().replaceAll(',', '')
         var kelipatan_harga = $('#kelipatan_harga').text().replaceAll(',', '')
 
+        $('.btn_bid').on('click', function () {
+            kodeBelow = $('#kode_peserta').text()
+
+            $.ajax({
+                url: document.location.pathname + '/api',
+                data: {
+                    'peserta': kodeBelow,
+                    'harga': harga_awal,
+                    'waktu': count,
+                    'code': 'penawaran',
+                    '_token': csrf
+                },
+                dataType: 'json',
+                method: 'post',
+                success: function(res) {
+                    if(res.status == 'failed') {
+                        window.alert(res.message)
+                    }
+                },
+                error: function(err) {console.error(err)},
+            })
+        });
+
+
+        $(function() {
+            setInterval(function() {
+                $.ajax({
+                    url: document.location.pathname + '/api',
+                    data:{
+                        'code': 'getAnyRequest',
+                        '_token': csrf,
+                        'harga': 0,
+                        'waktu': count,
+                        'peserta': 0,
+                        'length': $('div.riwayat_penawaran').length
+                    },
+                    dataType: 'json',
+                    method: 'post',
+                    success: function(res) {
+                        if(res.done) {
+                            // Selesai
+                            $('.btn_not_started').addClass('d-none').removeClass('d-block');
+                            $('.btn_bid').addClass('d-none').removeClass('d-block');
+                            $('.btn_done').removeClass('d-none').addClass('d-block');
+                        } else {
+                            if(!res.aktif && res.reset) {
+                                $('.btn_not_started').addClass('d-none').removeClass('d-block');
+                                $('.btn_bid').addClass('d-none').removeClass('d-block');
+                                $('.btn_done').removeClass('d-none').addClass('d-block');
+                            }
+                            if(res.aktif && res.reset) {
+                                $('.btn_not_started').addClass('d-none').removeClass('d-block');
+                                $('.btn_bid').removeClass('d-none').addClass('d-block');
+                                $('.btn_done').addClass('d-none').removeClass('d-block');
+                            }
+                            if(!res.aktif && !res.reset) {
+                                $('.btn_not_started').removeClass('d-none').addClass('d-block');
+                                $('.btn_bid').addClass('d-none').removeClass('d-block');
+                                $('.btn_done').addClass('d-none').removeClass('d-block');
+
+                                if($('.riwayat_penawaran').children().length > 0) {
+                                    $('.riwayat_penawaran').children().remove();
+                                    $('#show_price').text($('#harga_awal').text());
+                                    $('.riwayat_penawaran').append('<p>Belum ada Penawaran</p>');
+                                }
+                            }
+                        }
+
+                        var hours = ("0" + Math.floor(res.count / 3600)).slice(-2);
+                        var minutes = ("0" + Math.floor((res.count - (hours * 3600)) / 60)).slice(-2);
+                        var seconds = ("0" + (res.count - (hours * 3600) - (minutes * 60))).slice(-2);
+                        document.getElementById("time").innerHTML = hours + ":" + minutes + ":" + seconds;
+
+                        if(res.data.length > 0) {
+                            if(res.aktif) {
+                                $('#show_price').text((Intl.NumberFormat().format(parseInt(res.data[res.data.length - 1].harga_ajuan.split('.')[0]) + parseInt(kelipatan_harga))).replaceAll('.', ','));
+                            } else {
+                                $('#show_price').text((Intl.NumberFormat().format(parseInt(res.data[res.data.length - 1].harga_ajuan.split('.')[0]))).replaceAll('.', ','));
+                            }
+                            harga_awal = parseInt(res.data[res.data.length - 1].harga_ajuan.split('.')[0]) + parseInt(kelipatan_harga);
+
+                            $('.riwayat_penawaran').children().remove();
+                            res.data.forEach(x => {
+                                var hours = ("0" + Math.floor(x.waktu / 3600)).slice(-2);
+                                var minutes = ("0" + Math.floor((x.waktu - (hours * 3600)) / 60)).slice(-2);
+                                var seconds = ("0" + (x.waktu - (hours * 3600) - (minutes * 60))).slice(-2);
+
+                                    if($('div.riwayat_penawaran').children('p').length == 1) {
+                                        $('.riwayat_penawaran').children('p').remove();
+                                        $('.riwayat_penawaran').append('<ul class="list-group"><li class="list-group-item d-flex justify-content-between align-items-center"><span class="badge badge-primary badge-pill">' + x.kode_peserta_lelang + '</span> <div>' + hours + ":" + minutes + ":" + seconds + '</div> Rp. ' + (Intl.NumberFormat().format(x.harga_ajuan)).replaceAll('.', ',') + '</li></ul>');
+                                    } else {
+                                        if($('div.riwayat_penawaran').children('ul').length == 0) {
+                                            $('.riwayat_penawaran').append('<ul class="list-group"><li class="list-group-item d-flex justify-content-between align-items-center"><span class="badge badge-primary badge-pill">' + x.kode_peserta_lelang + '</span> <div>' + hours + ":" + minutes + ":" + seconds + '</div> Rp. ' + (Intl.NumberFormat().format(x.harga_ajuan)).replaceAll('.', ',') + '</li></ul>');
+                                        } else {
+                                            $('.riwayat_penawaran').children('ul.list-group').prepend('<li class="list-group-item d-flex justify-content-between align-items-center"><span class="badge badge-primary badge-pill">' + x.kode_peserta_lelang + '</span> <div>' + hours + ":" + minutes + ":" + seconds + '</div> Rp. ' + (Intl.NumberFormat().format(x.harga_ajuan)).replaceAll('.', ',') + '</li>');
+                                        }
+                                    }
+                            });
+                        }
+                    }, error: function(err) {
+                        console.error(err);
+                    }
+                });
+            }, 1000);
+        });
+    }
+    if(routeName == 'offline.event.produk.sesi') {
+        var count = 0;
+        var kodeBelow = 0;
+        var harga_awal = $('#harga_awal').text().replaceAll(',', '')
+        var kelipatan_harga = $('#kelipatan_harga').text().replaceAll(',', '')
+
+        $(function() {
+            setInterval(function() {
+                $.ajax({
+                    url: document.location.pathname + '/api',
+                    data:{
+                        'code': 'getAnyRequest',
+                        '_token': csrf,
+                        'harga': 0,
+                        'waktu': count,
+                        'peserta': 0,
+                        'length': $('div.riwayat_penawaran').length
+                    },
+                    dataType: 'json',
+                    method: 'post',
+                    success: function(res) {
+                        if(res.done) {
+                            // Selesai
+                            $('#start_lelang').addClass('d-none')
+                            $('#stop_lelang').addClass('d-none')
+                            $('#closed_btn').removeClass('d-none');
+                            $('.btn-peserta-lelang').attr('disabled', '');
+                        } else {
+                            if(!res.aktif && res.reset) {
+                                // Reset
+                                $('#btn_finish_lelang').removeClass('d-none');
+                                $('#start_lelang').addClass('d-none')
+                                $('#closed_btn').addClass('d-none')
+                                $('#stop_lelang').addClass('d-none')
+                                $('.btn-peserta-lelang').attr('disabled', '');
+                            }
+                            if(res.aktif && res.reset) {
+                                $('#start_lelang').addClass('d-none')
+                                $('#stop_lelang').removeClass('d-none')
+                                $('#closed_btn').addClass('d-none')
+                                $('#btn_finish_lelang').addClass('d-none');
+                                $('.btn-peserta-lelang').removeAttr('disabled');
+                            }
+                            if(!res.aktif && !res.reset) {
+                                $('#start_lelang').removeClass('d-none')
+                                $('#stop_lelang').addClass('d-none')
+                                $('#closed_btn').addClass('d-none')
+                                $('#btn_finish_lelang').addClass('d-none');
+                                $('.btn-peserta-lelang').attr('disabled', '');
+                            }
+                        }
+
+                        var hours = ("0" + Math.floor(res.count / 3600)).slice(-2);
+                        var minutes = ("0" + Math.floor((res.count - (hours * 3600)) / 60)).slice(-2);
+                        var seconds = ("0" + (res.count - (hours * 3600) - (minutes * 60))).slice(-2);
+                        document.getElementById("time").innerHTML = hours + ":" + minutes + ":" + seconds;
+
+                        if(res.data.length > 0) {
+                            if(res.aktif) {
+                                $('#show_price').text((Intl.NumberFormat().format(parseInt(res.data[res.data.length - 1].harga_ajuan.split('.')[0]) + parseInt(kelipatan_harga))).replaceAll('.', ','));
+                            } else {
+                                $('#show_price').text((Intl.NumberFormat().format(parseInt(res.data[res.data.length - 1].harga_ajuan.split('.')[0]))).replaceAll('.', ','));
+                            }
+                            harga_awal = parseInt(res.data[res.data.length - 1].harga_ajuan.split('.')[0]) + parseInt(kelipatan_harga);
+
+                            $('.riwayat_penawaran').children().remove();
+                            res.data.forEach(x => {
+                                var hours = ("0" + Math.floor(x.waktu / 3600)).slice(-2);
+                                var minutes = ("0" + Math.floor((x.waktu - (hours * 3600)) / 60)).slice(-2);
+                                var seconds = ("0" + (x.waktu - (hours * 3600) - (minutes * 60))).slice(-2);
+
+                                    if($('div.riwayat_penawaran').children('p').length == 1) {
+                                        $('.riwayat_penawaran').children('p').remove();
+                                        $('.riwayat_penawaran').append('<ul class="list-group"><li class="list-group-item d-flex justify-content-between align-items-center"><span class="badge badge-primary badge-pill">' + x.kode_peserta_lelang + '</span> <div>' + hours + ":" + minutes + ":" + seconds + '</div> Rp. ' + (Intl.NumberFormat().format(x.harga_ajuan)).replaceAll('.', ',') + '</li></ul>');
+                                    } else {
+                                        if($('div.riwayat_penawaran').children('ul').length == 0) {
+                                            $('.riwayat_penawaran').append('<ul class="list-group"><li class="list-group-item d-flex justify-content-between align-items-center"><span class="badge badge-primary badge-pill">' + x.kode_peserta_lelang + '</span> <div>' + hours + ":" + minutes + ":" + seconds + '</div> Rp. ' + (Intl.NumberFormat().format(x.harga_ajuan)).replaceAll('.', ',') + '</li></ul>');
+                                        } else {
+                                            $('.riwayat_penawaran').children('ul.list-group').prepend('<li class="list-group-item d-flex justify-content-between align-items-center"><span class="badge badge-primary badge-pill">' + x.kode_peserta_lelang + '</span> <div>' + hours + ":" + minutes + ":" + seconds + '</div> Rp. ' + (Intl.NumberFormat().format(x.harga_ajuan)).replaceAll('.', ',') + '</li>');
+                                        }
+                                    }
+                            });
+                        }
+                    }, error: function(err) {
+                        console.error(err);
+                    }
+                });
+            }, 1000);
+        });
+
         $('#start_lelang').on('click', function(){
-            startTimer();
             $('#start_lelang').addClass('d-none');
             $('#stop_lelang').removeClass('d-none').removeAttr('disabled');
             $('.btn-peserta-lelang').removeAttr('disabled');
+            $.ajax({
+                url: document.location.pathname + '/api',
+                data: {
+                    'peserta': '_',
+                    'harga': '_',
+                    'waktu': 0,
+                    'code': 'startEventLelang',
+                    '_token': csrf
+                },
+                dataType: 'json',
+                method: 'post',
+                success: function(res) {
+                    // console.log(res)
+                },
+                error: function(err) {console.error(err)},
+            });
         });
         $('#stop_lelang').on('click', function(){
-            stopTimer();
             $('#btn_finish_lelang').removeClass('d-none')
             $('.btn-peserta-lelang').attr('disabled', '');
             $('#start_lelang').attr('disabled', '');
             $('#stop_lelang').addClass('d-none').attr('disabled', '');
+
+            $.ajax({
+                url: document.location.pathname + '/api',
+                data: {
+                    'peserta': '_',
+                    'harga': '_',
+                    'waktu': 0,
+                    'code': 'stopSesiLelang',
+                    '_token': csrf
+                },
+                dataType: 'json',
+                method: 'post',
+                success: function(res) {
+                    // console.log(res)
+                },
+                error: function(err) {console.error(err)},
+            });
         });
+
         $('#reset_lelang').on('click', function(){
             count = 0;
             var hours = ("0" + Math.floor(count / 3600)).slice(-2);
@@ -1114,11 +2051,12 @@ $(function () {
                 dataType: 'json',
                 method: 'post',
                 success: function(res) {
-                    console.log(res)
+                    // console.log(res)
                 },
                 error: function(err) {console.error(err)},
             });
         });
+
         $('#selesai_lelang').on('click', function(){
             $.ajax({
                 url: document.location.pathname + '/api',
@@ -1141,20 +2079,6 @@ $(function () {
             })
         });
 
-        function startTimer() {
-            intervalId = setInterval(function() {
-                count++;
-                var hours = ("0" + Math.floor(count / 3600)).slice(-2);
-                var minutes = ("0" + Math.floor((count - (hours * 3600)) / 60)).slice(-2);
-                var seconds = ("0" + (count - (hours * 3600) - (minutes * 60))).slice(-2);
-                document.getElementById("time").innerHTML = hours + ":" + minutes + ":" + seconds;
-            }, 1000);
-        }
-
-        function stopTimer() {
-            clearInterval(intervalId);
-        }
-
         $('.btn-peserta-lelang').on('click', getKodePesertaLelang);
 
         function getKodePesertaLelang () {
@@ -1173,31 +2097,13 @@ $(function () {
                     dataType: 'json',
                     method: 'post',
                     success: function(res) {
-                        console.log(res)
+                        // console.log(res)
                     },
                     error: function(err) {console.error(err)},
                 })
-
-                var hours = ("0" + Math.floor(count / 3600)).slice(-2);
-                var minutes = ("0" + Math.floor((count - (hours * 3600)) / 60)).slice(-2);
-                var seconds = ("0" + (count - (hours * 3600) - (minutes * 60))).slice(-2);
-
-                if($('div.riwayat_penawaran').children('p').length == 1) {
-                    $('.riwayat_penawaran').children('p').remove();
-                    $('.riwayat_penawaran').append('<ul class="list-group"><li class="list-group-item d-flex justify-content-between align-items-center"><span class="badge badge-primary badge-pill">' + $(this).data('kode') + '</span> <div>' + hours + ":" + minutes + ":" + seconds + '</div> Rp. ' + (Intl.NumberFormat().format(harga_awal)).replaceAll('.', ',') + '</li></ul>');
-                } else {
-                    if($('div.riwayat_penawaran').children('ul').length == 0) {
-                        $('.riwayat_penawaran').append('<ul class="list-group"><li class="list-group-item d-flex justify-content-between align-items-center"><span class="badge badge-primary badge-pill">' + $(this).data('kode') + '</span> <div>' + hours + ":" + minutes + ":" + seconds + '</div> Rp. ' + (Intl.NumberFormat().format(harga_awal)).replaceAll('.', ',') + '</li></ul>');
-                    } else {
-                        $('.riwayat_penawaran').children('ul.list-group').prepend('<li class="list-group-item d-flex justify-content-between align-items-center"><span class="badge badge-primary badge-pill">' + $(this).data('kode') + '</span> <div>' + hours + ":" + minutes + ":" + seconds + '</div> Rp. ' + (Intl.NumberFormat().format(harga_awal)).replaceAll('.', ',') + '</li>');
-                    }
-                }
-
-                harga_awal = parseInt(harga_awal) + parseInt(kelipatan_harga);
-                $('#show_price').text((Intl.NumberFormat().format(harga_awal)).replaceAll('.', ','))
             }
         }
-        
+
     }
     if(routeName == 'administrasi.kas_bank.verifikasi.index') {
         $('.table-kas_bank-verifikasi').DataTable({
@@ -1288,14 +2194,14 @@ $(function () {
             tags: true
         });
 
-        // Logic 
+        // Logic
 
         let temp = 'Cash / Bank In (Trading)';
         $('.cash-in').addClass('d-none')
                 $('.cash-in-non').addClass('d-none')
                 $('.settlement').addClass('d-none')
                 $('.pengembalian-collateral').addClass('d-none')
-    
+
                 $('.cash-in').removeClass('d-none')
 
         $('select#member_id').on('change', function(e) {
@@ -1304,7 +2210,7 @@ $(function () {
                 method: 'get',
                 data: {
                     member: e.target.value
-                }, 
+                },
                 dataType: 'json',
                 success: function(res) {
                     $('select#rekening_bank_id').attr('disabled');
@@ -1331,7 +2237,7 @@ $(function () {
                 $('.cash-in-non').addClass('d-none')
                 $('.settlement').addClass('d-none')
                 $('.pengembalian-collateral').addClass('d-none')
-    
+
                 $('.cash-in').removeClass('d-none')
             }
             else if(temp == 'Cash / Bank In (Non-Trading)') {
@@ -1339,7 +2245,7 @@ $(function () {
                 $('.cash-in-non').addClass('d-none')
                 $('.settlement').addClass('d-none')
                 $('.pengembalian-collateral').addClass('d-none')
-    
+
                 $('.cash-in-non').removeClass('d-none')
             }
             else if(temp == 'Cash / Bank Out (Settlement)') {
@@ -1347,7 +2253,7 @@ $(function () {
                 $('.cash-in-non').addClass('d-none')
                 $('.settlement').addClass('d-none')
                 $('.pengembalian-collateral').addClass('d-none')
-    
+
                 $('.settlement').removeClass('d-none')
             }
             else if(temp == 'Cash / Bank Out (Pembayaran Fee)') {
@@ -1361,7 +2267,7 @@ $(function () {
                 $('.cash-in-non').addClass('d-none')
                 $('.settlement').addClass('d-none')
                 $('.pengembalian-collateral').addClass('d-none')
-    
+
                 $('.pengembalian-collateral').removeClass('d-none')
             }
             else {
@@ -1372,8 +2278,8 @@ $(function () {
                 $('.cash-in').removeClass('d-none')
             }
         });
-        
-    
+
+
         //End Logic
     }
     if(routeName == 'administrasi.gudang.penerimaan.index') {
@@ -1396,7 +2302,7 @@ $(function () {
             ]
         });
     }
-    if(routeName == 'administrasi.gudang.penerimaan.create') {
+    if(routeName == 'administrasi.gudang.penerimaan.create' || routeName == 'administrasi.gudang.penerimaan.edit') {
         $("select#informasi_akun_id").select2({
             tags: true
         });
@@ -1422,8 +2328,7 @@ $(function () {
                 },
                 dataType: 'json',
                 success: function(res) {
-                    console.log(res);
-                    $('.komoditas-satuan-ukuran').html(res.data.satuan_ukuran);
+                    $('span.komoditas-satuan-ukuran').html(res.data.satuan_ukuran);
                 },
                 error: function(err) {
                     console.error(err)
@@ -1443,7 +2348,1149 @@ $(function () {
             }
         });
     }
+    if(routeName == 'administrasi.gudang.verifikasi.index') {
+        $('.table-gudang-verifikasi').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'transaksi_id', name: 'transaksi_id'},
+                {data: 'tanggal', name: 'tanggal'},
+                {data: 'jenis_registrasi', name: 'jenis_registrasi'},
+                {data: 'gudang', name: 'gudang'},
+                {data: 'anggota', name: 'anggota'},
+                {data: 'komoditas', name: 'komoditas'},
+                {data: 'nilai', name: 'nilai'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'administrasi.gudang.verifikasi.index_ditolak') {
+        $('.table-gudang-verifikasi-tolak').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'transaksi_id', name: 'transaksi_id'},
+                {data: 'tanggal', name: 'tanggal'},
+                {data: 'jenis_registrasi', name: 'jenis_registrasi'},
+                {data: 'gudang', name: 'gudang'},
+                {data: 'anggota', name: 'anggota'},
+                {data: 'komoditas', name: 'komoditas'},
+                {data: 'nilai', name: 'nilai'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'administrasi.gudang.list.index') {
+        $('.table-gudang-list').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'transaksi_id', name: 'transaksi_id'},
+                {data: 'tanggal', name: 'tanggal'},
+                {data: 'jenis_registrasi', name: 'jenis_registrasi'},
+                {data: 'gudang', name: 'gudang'},
+                {data: 'anggota', name: 'anggota'},
+                {data: 'komoditas', name: 'komoditas'},
+                {data: 'nilai', name: 'nilai'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'administrasi.jaminan.penerimaan.list.index') {
+        $('.table-jaminan-penerimaan-list').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'tanggal_transaksi', name: 'tanggal_transaksi'},
+                {data: 'nama', name: 'nama'},
+                {data: 'nilai_jaminan', name: 'nilai_jaminan'},
+                {data: 'nilai_penyesuaian', name: 'nilai_penyesuaian'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'administrasi.jaminan.penerimaan.index') {
+        $('.table-jaminan-penerimaan').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'tanggal_transaksi', name: 'tanggal_transaksi'},
+                {data: 'nama', name: 'nama'},
+                {data: 'nilai_jaminan', name: 'nilai_jaminan'},
+                {data: 'nilai_penyesuaian', name: 'nilai_penyesuaian'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'administrasi.jaminan.penerimaan.create' || routeName == 'administrasi.jaminan.penerimaan.edit') {
+        $("select#informasi_akun_id").select2({
+            tags: true
+        });
 
+        $("select#informasi_akun_id").on('change', function(e){
+            $.ajax({
+                url: document.location.href + '/api',
+                method: 'get',
+                data: {
+                    _token: csrf,
+                    informasi_akun_id: e.target.value,
+                    code: 'get-jaminan'
+                },
+                dataType: 'json',
+                success: function(res) {
+                    if(res.status == 'success') {
+                        $('input#total_saldo_jaminan').val(res.data.total_saldo_jaminan)
+                        $('input#saldo_teralokasi').val(res.data.saldo_teralokasi)
+                        $('input#saldo_tersedia').val(res.data.saldo_tersedia)
+                    }
+                },
+                error: function(err) {
+                    console.error(err);
+                },
+            })
+        })
+    }
+    if(routeName == 'administrasi.jaminan.penerimaan.kas.index') {
+        $('.table-jaminan-kas').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'kode_mata_uang', name: 'kode_mata_uang'},
+                {data: 'kurs', name: 'kurs'},
+                {data: 'nilai', name: 'nilai'},
+                {data: 'nilai_penyesuaian', name: 'nilai_penyesuaian'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'administrasi.jaminan.penerimaan.komoditas.index') {
+        $('.table-jaminan-komoditas').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'komoditi', name: 'komoditi'},
+                {data: 'kuantitas', name: 'kuantitas'},
+                {data: 'unit', name: 'unit'},
+                {data: 'nilai_perkiraan', name: 'nilai_perkiraan'},
+                {data: 'nilai_penyesuaian', name: 'nilai_penyesuaian'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'administrasi.jaminan.penerimaan.deposito.index') {
+        $('.table-jaminan-deposito').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'tanggal_terima', name: 'tanggal_terima'},
+                {data: 'tanggal_jatuh_tempo', name: 'tanggal_jatuh_tempo'},
+                {data: 'nilai_nominal', name: 'nilai_nominal'},
+                {data: 'haircut', name: 'haircut'},
+                {data: 'nilai_tersedia', name: 'nilai_tersedia'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'administrasi.jaminan.penerimaan.obligasi.index') {
+        $('.table-jaminan-obligasi').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'jenis', name: 'jenis'},
+                {data: 'tanggal_jatuh_tempo', name: 'tanggal_jatuh_tempo'},
+                {data: 'nilai_nominal', name: 'nilai_nominal'},
+                {data: 'haircut', name: 'haircut'},
+                {data: 'nilai_tersedia', name: 'nilai_tersedia'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'administrasi.jaminan.penerimaan.saham.index') {
+        $('.table-jaminan-saham').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'kode_saham', name: 'kode_saham'},
+                {data: 'lot', name: 'lot'},
+                {data: 'nilai_saham', name: 'nilai_saham'},
+                {data: 'haircut', name: 'haircut'},
+                {data: 'nilai_tersedia', name: 'nilai_tersedia'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'administrasi.jaminan.penerimaan.saham.create' || routeName == 'administrasi.jaminan.penerimaan.saham.edit') {
+        let harga_saham = 0, lot = 0;
+        $('input#harga_saham').on('change', function(e) {
+            harga_saham = String(e.target.value)
+            if(typeof lot == 'number') {
+                lot = $('input#lot') != '' ? String($('input#lot').val()) : String(lot)
+            }
+            calculatePriceAndLot()
+        });
+
+        $('input#lot').on('change', function(e) {
+            lot = String(e.target.value);
+            if(typeof harga_saham == 'number') {
+                harga_saham = $('input#harga_saham') != '' ? String($('input#harga_saham').val()) : String(harga_saham)
+            }
+            calculatePriceAndLot()
+        });
+
+        function calculatePriceAndLot () {
+
+            if(harga_saham.includes('.')) {
+                harga_saham = harga_saham.split('.')[0];
+            }
+            if(lot.includes('.')) {
+                lot = lot.split('.')[0];
+            }
+
+            harga_saham = harga_saham.replaceAll(',', '');
+            lot = lot.replaceAll(',', '');
+
+            $('input#nilai_saham').val(((parseInt(harga_saham) * parseInt(lot)).toLocaleString()).replaceAll('.', ','));
+        }
+    }
+    if(routeName == 'administrasi.jaminan.penerimaan.resi_gudang.index') {
+        $('.table-jaminan-resi_gudang').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'nama_resi_gudang', name: 'nama_resi_gudang'},
+                {data: 'tanggal_jatuh_tempo', name: 'tanggal_jatuh_tempo'},
+                {data: 'nilai_resi_gudang', name: 'nilai_resi_gudang'},
+                {data: 'haircut', name: 'haircut'},
+                {data: 'nilai_tersedia', name: 'nilai_tersedia'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'administrasi.jaminan.penerimaan.verifikasi.index' || routeName == 'administrasi.jaminan.penerimaan.verifikasi.index_ditolak') {
+        $('.table-jaminan-verifikasi').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'nama', name: 'nama'},
+                {data: 'tanggal', name: 'tanggal'},
+                {data: 'nilai_jaminan', name: 'nilai_jaminan'},
+                {data: 'haircut', name: 'haircut'},
+                {data: 'nilai_penyesuaian', name: 'nilai_penyesuaian'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'notifikasi') {
+        $('.table-notifikasi').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'notifikasi_id', name: 'notifikasi_id'},
+                {data: 'judul', name: 'judul'},
+                {data: 'konten', name: 'konten'},
+                {data: 'is_read', name: 'is_read'},
+                {data: 'created_at', name: 'created_at'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'administrasi.jaminan.pengeluaran.index') {
+        $('.table-jaminan-pengeluaran').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'kode_transaksi', name: 'kode_transaksi'},
+                {data: 'jenis', name: 'jenis'},
+                {data: 'tanggal', name: 'tanggal'},
+                {data: 'nama', name: 'nama'},
+                {data: 'jumlah', name: 'jumlah'},
+                {data: 'status', name: 'status'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'administrasi.jaminan.pengeluaran.create' || routeName == 'administrasi.jaminan.pengeluaran.edit') {
+        $("select#informasi_akun_id").select2({
+            tags: true
+        });
+        $("select#jenis_pengeluaran_jaminan_id").select2({
+            tags: true
+        });
+
+        $('select#jenis_pengeluaran_jaminan_id').on('change', function(e) {
+            if(e.target.value == 'Release Commodity Collateral') {
+                $('.return-cash').addClass('d-none')
+                $('.jaminan_komoditas').addClass('d-none')
+                $('.release-cash').addClass('d-none')
+
+                $('.jaminan_komoditas').removeClass('d-none')
+            }
+            if(e.target.value == 'Return Cash Collateral') {
+                $('.return-cash').addClass('d-none')
+                $('.jaminan_komoditas').addClass('d-none')
+                $('.release-cash').addClass('d-none')
+
+                $('.return-cash').removeClass('d-none')
+            }
+            if(e.target.value == 'Release Cash Collateral') {
+                $('.return-cash').addClass('d-none')
+                $('.jaminan_komoditas').addClass('d-none')
+                $('.release-cash').addClass('d-none')
+
+                $('.release-cash').removeClass('d-none')
+            }
+        });
+
+        $('select#informasi_akun_id').on('change', function(e) {
+            $.ajax({
+                url: document.location.href + '/get-komoditas',
+                method: 'get',
+                data: {
+                    _token: csrf,
+                    informasi_akun_id: e.target.value,
+                },
+                dataType: 'json',
+                beforeSend: function() {
+                    $('select#registrasi_komoditas_jaminan_id').append('<option>Loading ...</option>');
+                },
+                success: function(res) {
+                    $('select#registrasi_komoditas_jaminan_id').children().remove();
+                    if(res.status == 'success') {
+                        $('#saldo_tersedia').val(parseInt(res.data.total_saldo_tersedia).toLocaleString().replaceAll('.', ','));
+                        if(res.data.komoditas.length > 0) {
+                            res.data.komoditas.forEach(a => {
+                                $('select#registrasi_komoditas_jaminan_id').append('<option data-kuantitas="'+ a.kuantitas +'" data-perkiraan="' + a.nilai_perkiraan.split('.')[0] + '" data-penyesuaian="' + a.nilai_penyesuaian.split('.')[0] + '" value="'+ a.registrasi_komoditas_jaminan_id +'">'+ a.komoditi + ' ('+ a.kuantitas +' '+ a.unit +')' +'</option>');
+                            });
+                            $('select#registrasi_komoditas_jaminan_id').removeAttr('disabled')
+                        } else {
+                            $('select#registrasi_komoditas_jaminan_id').attr('disabled', '')
+                            $('select#registrasi_komoditas_jaminan_id').append('<option>Tidak ada Jaminan Komoditas ...</option>');
+                        }
+                    }
+                },
+                error: function(err) {
+                    $('select#registrasi_komoditas_jaminan_id').children().remove();
+                    console.error(err)
+                }
+            });
+        });
+
+        $('input#qty_settlement').on('change', function(e) {
+            let penyesuaian = parseFloat($('select#registrasi_komoditas_jaminan_id').children('option[value='+ $('select#registrasi_komoditas_jaminan_id').val() +']').attr('data-penyesuaian'));
+            let kuantitas = parseFloat($('select#registrasi_komoditas_jaminan_id').children('option[value='+ $('select#registrasi_komoditas_jaminan_id').val() +']').attr('data-kuantitas').split('.')[0]);
+            if(e.target.value > 0 && e.target.value <= kuantitas) {
+                $('input#alokasi_settlement').val(((penyesuaian / kuantitas) * e.target.value).toLocaleString().replaceAll('.', ','));
+            } else {
+                $('input#alokasi_settlement').val(0);
+            }
+        })
+    }
+    if(routeName == 'administrasi.jaminan.pengeluaran.verifikasi.index' || routeName == 'administrasi.jaminan.pengeluaran.verifikasi.index_ditolak' || routeName == 'administrasi.jaminan.pengeluaran.list.index') {
+        $('.table-jaminan-pengeluaran-verifikasi').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'kode_transaksi', name: 'kode_transaksi'},
+                {data: 'jenis', name: 'jenis'},
+                {data: 'tanggal', name: 'tanggal'},
+                {data: 'nama', name: 'nama'},
+                {data: 'jumlah', name: 'jumlah'},
+                {data: 'status', name: 'status'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'operational.lelang.transaksi.index') {
+        $('.table-transaksi-lelang').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'jatuh_tempo', name: 'jatuh_tempo'},
+                {data: 'tanggal', name: 'tanggal'},
+                {data: 'nomor_lelang', name: 'nomor_lelang'},
+                {data: 'pembeli', name: 'pembeli'},
+                {data: 'penjual', name: 'penjual'},
+                {data: 'harga', name: 'harga'},
+                {data: 'jenis', name: 'jenis'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'operational.lelang.transaksi.show') {
+        $('#biaya_lain_lain_penjual').on('change', function(e) {
+            let biaya_lain_penjual = e.target.value.replaceAll(',', '');
+            let tagihanPenjual = $('#tagihan_penjual').val().replaceAll(',', '');
+            let penyelesaianPembeli = $('#penyelesaian_komoditas_pembeli').val().replaceAll(',', '');
+
+            $('#penyelesaian_komoditas_penjual').val(((parseFloat(tagihanPenjual) + parseFloat(biaya_lain_penjual)).toLocaleString()).replaceAll('.', ','));
+            $('#total_dibayar_ke_penjual').val(((parseFloat(penyelesaianPembeli) - (parseFloat(tagihanPenjual) + parseFloat(biaya_lain_penjual))).toLocaleString()).replaceAll('.', ','));
+        });
+
+        $('#biaya_lain_lain_pembeli').on('change', function(e) {
+            let biaya_lain_pembeli = e.target.value.replaceAll(',', '');
+            let tagihanPembeli = $('#tagihan_pembeli').val().replaceAll(',', '');
+            let penyelesaianPenjual = $('#penyelesaian_komoditas_penjual').val().replaceAll(',', '');
+
+            $('#penyelesaian_komoditas_pembeli').val(((parseFloat(tagihanPembeli) + parseFloat(biaya_lain_pembeli)).toLocaleString()).replaceAll('.', ','));
+            $('#total_dibayar_ke_penjual').val((( (parseFloat(tagihanPembeli) + parseFloat(biaya_lain_pembeli)) - penyelesaianPenjual ).toLocaleString()).replaceAll('.', ','));
+        });
+    }
+    if (routeName == 'operational.lelang.verifikasi.index' || routeName == 'operational.lelang.verifikasi.index_ditolak') {
+        $('.table-lelang-verifikasi').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'jatuh_tempo', name: 'jatuh_tempo'},
+                {data: 'tanggal', name: 'tanggal'},
+                {data: 'nomor_lelang', name: 'nomor_lelang'},
+                {data: 'pembeli', name: 'pembeli'},
+                {data: 'penjual', name: 'penjual'},
+                {data: 'harga', name: 'harga'},
+                {data: 'jenis', name: 'jenis'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'operational.lelang.list.index') {
+        $('.table-lelang-list').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'jatuh_tempo', name: 'jatuh_tempo'},
+                {data: 'tanggal', name: 'tanggal'},
+                {data: 'nomor_lelang', name: 'nomor_lelang'},
+                {data: 'pembeli', name: 'pembeli'},
+                {data: 'penjual', name: 'penjual'},
+                {data: 'harga', name: 'harga'},
+                {data: 'jenis', name: 'jenis'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'konfigurasi.role') {
+        $('.table-role').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'role_id', name: 'role_id'},
+                {data: 'nama_role', name: 'nama_role'},
+                {data: 'is_aktif', name: 'is_aktif'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'konfigurasi.mutu') {
+        $('.table-mutu').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'mutu_id', name: 'mutu_id'},
+                {data: 'nama_mutu', name: 'nama_mutu'},
+                {data: 'is_aktif', name: 'is_aktif'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'konfigurasi.status.member') {
+        $('.table-status-member').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'status_member_id', name: 'status_member_id'},
+                {data: 'nama_status', name: 'nama_status'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'konfigurasi.status.lelang') {
+        $('.table-status-lelang').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'status_lelang_id', name: 'status_lelang_id'},
+                {data: 'nama_status', name: 'nama_status'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'konfigurasi.status.event_lelang') {
+        $('.table-status-event_lelang').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'status_event_lelang_id', name: 'status_event_lelang_id'},
+                {data: 'nama_status', name: 'nama_status'},
+                {data: 'is_aktif', name: 'is_aktif'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'konfigurasi.jenis.harga') {
+        $('.table-jenis-harga').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'jenis_harga_id', name: 'jenis_harga_id'},
+                {data: 'nama_jenis_harga', name: 'nama_jenis_harga'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'konfigurasi.jenis.perdagangan') {
+        $('.table-jenis-perdagangan').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'jenis_perdagangan_id', name: 'jenis_perdagangan_id'},
+                {data: 'nama_perdagangan', name: 'nama_perdagangan'},
+                {data: 'is_aktif', name: 'is_aktif'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'administrasi.kas_bank.penerimaan.file.index' || routeName == 'administrasi.kas_bank.list.file.index' || routeName == 'administrasi.kas_bank.verifikasi.file.index') {
+        $('.table-kas_bank-penerimaan-file').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'file_keuangan_id', name: 'file_keuangan_id'},
+                {data: 'tanggal_upload', name: 'tanggal_upload'},
+                {data: 'nama_dokumen', name: 'nama_dokumen'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'konfigurasi.jenis.inisiasi') {
+        $('.table-jenis-inisiasi').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'jenis_inisiasi_id', name: 'jenis_inisiasi_id'},
+                {data: 'nama_inisiasi', name: 'nama_inisiasi'},
+                {data: 'is_aktif', name: 'is_aktif'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'konfigurasi.admin.create') {
+        $('.table-member-aktif').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'member_id', name: 'member_id'},
+                {data: 'nik', name: 'nik'},
+                {data: 'nama', name: 'nama'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'konfigurasi.dana_keuangan') {
+        $('.table-dana-keuangan').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'dana_keuangan_id', name: 'dana_keuangan_id'},
+                {data: 'jenis', name: 'jenis'},
+                {data: 'jumlah_dana', name: 'jumlah_dana'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'konfigurasi.rekening_pusat.create' || routeName == 'konfigurasi.rekening_pusat.edit') {
+        $("select#bank_id").select2({
+            tags: true
+        });
+        $("select#mata_uang").select2({
+            tags: true
+        });
+        $("select#aktif").select2({
+            tags: true
+        });
+        $("select#status").select2({
+            tags: true
+        });
+    }
+    if (routeName == 'konfigurasi.rekening_pusat') {
+        $('.table-rekening-pusat').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'rekening_pusat_id', name: 'rekening_pusat_id'},
+                {data: 'nama_bank', name: 'nama_bank'},
+                {data: 'nomor_rekening', name: 'nomor_rekening'},
+                {data: 'saldo', name: 'saldo'},
+                {data: 'aktif', name: 'aktif'},
+                {data: 'status', name: 'status'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'konfigurasi.admin') {
+        $('.table-admin').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'admin_id', name: 'admin_id'},
+                {data: 'nik', name: 'nik'},
+                {data: 'nama', name: 'nama'},
+                {data: 'is_aktif', name: 'is_aktif'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'konfigurasi.aplikasi.carousel') {
+        $('.table-carousel').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'gambar', name: 'gambar'},
+                {data: 'halaman', name: 'halaman'},
+                {data: 'urutan', name: 'urutan'},
+                {data: 'title', name: 'title'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'konfigurasi.aplikasi.web_link') {
+        $('.table-web-link').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'nama_web', name: 'nama_web'},
+                {data: 'link', name: 'link'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'konfigurasi.area.provinsi') {
+        $('.table-provinsi').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'provinsi_id', name: 'provinsi_id'},
+                {data: 'nama_provinsi', name: 'nama_provinsi'},
+                {data: 'kabupaten', name: 'kabupaten'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'konfigurasi.area.provinsi.kabupaten') {
+        $('.table-kabupaten').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'kabupaten_id', name: 'kabupaten_id'},
+                {data: 'nama_kabupaten', name: 'nama_kabupaten'},
+                {data: 'kecamatan', name: 'kecamatan'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'konfigurasi.area.provinsi.kabupaten.kecamatan') {
+        $('.table-kecamatan').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'kecamatan_id', name: 'kecamatan_id'},
+                {data: 'nama_kecamatan', name: 'nama_kecamatan'},
+                {data: 'desa', name: 'desa'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'konfigurasi.area.provinsi.kabupaten.kecamatan.desa') {
+        $('.table-desa').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'desa_id', name: 'desa_id'},
+                {data: 'nama_desa', name: 'nama_desa'},
+                {data: 'member', name: 'member'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'laporan.jaminan') {
+        $('#member_id').select2({
+            minimumInputLength: 2,
+            tags: [],
+            ajax: {
+                url: document.location.origin + '/laporan/api',
+                dataType: 'json',
+                delay: 250,
+                type: 'GET',
+                data: function (params) {
+                    return {
+                        token: csrf,
+                        jenis: 'member',
+                        q: params.term, // search term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.nama + ' (' + item.nik + ')',
+                                id: item.member_id
+                            }
+                        })
+                    };
+                },
+                cache: true
+            },
+        });
+        $("select#jenis").select2({
+            tags: true
+        });
+    }
+    if (routeName == 'laporan.daftar_anggota') {
+        $('#chooser').on('change', function(e) {
+            if(e.target.value == '1') {
+                $('.choose-perorangan').removeClass('d-none')
+                $('.choose-semua').addClass('d-none')
+                $('.choose-lembaga').addClass('d-none')
+            } else if(e.target.value == '2' || e.target.value == '4') {
+                $('.choose-lembaga').addClass('d-none')
+                $('.choose-perorangan').addClass('d-none')
+                $('.choose-semua').removeClass('d-none')
+            } else if(e.target.value == '3') {
+                $('.choose-lembaga').removeClass('d-none')
+                $('.choose-perorangan').addClass('d-none')
+                $('.choose-semua').addClass('d-none')
+            } else {
+                return;
+            }
+        });
+
+        $('#member_id').select2({
+            minimumInputLength: 2,
+            tags: [],
+            ajax: {
+                url: document.location.origin + '/laporan/api',
+                dataType: 'json',
+                delay: 250,
+                type: 'GET',
+                data: function (params) {
+                    return {
+                        token: csrf,
+                        jenis: 'member',
+                        q: params.term, // search term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.nama + ' (' + item.nik + ')',
+                                id: item.member_id
+                            }
+                        })
+                    };
+                },
+                cache: true
+            },
+        });
+
+        $('#lembaga_id').select2({
+            minimumInputLength: 2,
+            tags: [],
+            ajax: {
+                url: document.location.origin + '/laporan/api',
+                dataType: 'json',
+                delay: 250,
+                type: 'GET',
+                data: function (params) {
+                    return {
+                        token: csrf,
+                        jenis: 'lembaga',
+                        q: params.term, // search term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.nama_lembaga ,
+                                id: item.lembaga_id
+                            }
+                        })
+                    };
+                },
+                cache: true
+            },
+        });
+        $("select#status").select2({
+            tags: true
+        });
+    }
+    if (routeName == 'laporan.transaksi_bank') {
+        $('#member_id').select2({
+            minimumInputLength: 2,
+            tags: [],
+            ajax: {
+                url: document.location.origin + '/laporan/api',
+                dataType: 'json',
+                delay: 250,
+                type: 'GET',
+                data: function (params) {
+                    return {
+                        token: csrf,
+                        jenis: 'member',
+                        q: params.term, // search term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.nama + ' (' + item.nik + ')',
+                                id: item.member_id
+                            }
+                        })
+                    };
+                },
+                cache: true
+            },
+        });
+        $("select#jenis_transaksi_id").select2({
+            tags: true
+        });
+    }
+    if (routeName == 'laporan.lelang') {
+        $("select#penyelenggara_pasar_lelang_id").select2({
+            tags: true
+        });
+        $("select#sesi").select2({
+            tags: true
+        });
+    }
+    if (routeName == 'laporan.event_lelang') {
+        $('#event_lelang_id').select2({
+            minimumInputLength: 2,
+            tags: [],
+            ajax: {
+                url: document.location.origin + '/laporan/event_lelang/api',
+                dataType: 'json',
+                delay: 250,
+                type: 'GET',
+                data: function (params) {
+                    return {
+                        token: csrf,
+                        q: params.term, // search term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.nama_lelang + ' (' + item.event_kode + ')',
+                                id: item.event_lelang_id
+                            }
+                        })
+                    };
+                },
+                cache: true
+            },
+        });
+    }
+    if (routeName == 'blog.kategori') {
+        $('.table-blog-kategori').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'blog_kategori_id', name: 'blog_kategori_id'},
+                {data: 'title', name: 'title'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'blog.kategori.create' || routeName == 'blog.kategori.edit') {
+        $('input#title').on('change', function(e) {
+            $('input#slug').val(e.target.value.toLowerCase().replaceAll(' ', '-'));
+        })
+    }
+    if (routeName == 'blog.post.create' || routeName == 'blog.post.edit') {
+        $("select#kategori").select2({
+            tags: true
+        });
+        $("select#tag").select2({
+            multiple: true,
+        });
+        $('input#title').on('change', function(e) {
+            $('input#slug').val(e.target.value.toLowerCase().replaceAll(' ', '-'));
+        })
+
+        if(routeName == 'blog.post.edit') {
+            let temp = $('input[name=tagHelper]').val().split(';')
+            $("select#tag").val(temp);
+        }
+    }
+    if (routeName == 'blog.post.meta') {
+        $('.table-blog-post-meta').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'key', name: 'key'},
+                {data: 'content', name: 'content'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'blog.post') {
+        $('.table-blog-post').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'published_at', name: 'published_at'},
+                {data: 'kategori', name: 'kategori'},
+                {data: 'title', name: 'title'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'blog.tag') {
+        $('.table-blog-tag').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'blog_tag_id', name: 'blog_tag_id'},
+                {data: 'title', name: 'title'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'blog.tag.create' || routeName == 'blog.tag.edit') {
+        $('input#title').on('change', function(e) {
+            $('input#slug').val(e.target.value.toLowerCase().replaceAll(' ', '-'));
+        })
+    }
+    if (routeName == 'konfigurasi.laporan.perjanjian_jual_beli') {
+        $('.table-laporan-perjanjian').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'perjanjian_jual_beli_pasal_id', name: 'perjanjian_jual_beli_pasal_id'},
+                {data: 'key', name: 'key'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if(routeName == 'konfigurasi.aplikasi.aplikasi') {
+        $('.table-aplikasi').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'aplikasi_id', name: 'aplikasi_id'},
+                {data: 'nama_aplikasi', name: 'nama_aplikasi'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'laporan.transaksi_lelang') {
+        $('#member_id').select2({
+            minimumInputLength: 2,
+            tags: [],
+            ajax: {
+                url: document.location.origin + '/laporan/api',
+                dataType: 'json',
+                delay: 250,
+                type: 'GET',
+                data: function (params) {
+                    return {
+                        token: csrf,
+                        jenis: 'member',
+                        q: params.term, // search term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.nama + ' (' + item.nik + ')',
+                                id: item.member_id
+                            }
+                        })
+                    };
+                },
+                cache: true
+            },
+        });
+        $("select#jenis").select2({
+            tags: true
+        });
+    }
     $(".custom-file-input").on("change", function (e) {
         $(this).siblings().text(e.target.value.split("fakepath")[1]);
         var input = $(e.currentTarget);
@@ -1455,7 +3502,6 @@ $(function () {
         };
         reader.readAsDataURL(file);
     });
-
     $("#logout-btn").on("click", function () {
         Swal.fire({
             title: "Keluar ?",

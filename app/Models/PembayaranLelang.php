@@ -25,6 +25,7 @@ class PembayaranLelang extends Model
     protected $fillable = [
         'status_penyelesaian_id',
         'approval_lelang_id',
+        'nomor_penyelesaian',
         'tanggal_pembayaran',
         'tanggal_jatuh_tempo',
         'keterangan'
@@ -52,16 +53,21 @@ class PembayaranLelang extends Model
 
     public function komoditas_masuk()
     {
-        return $this->hasOne(KomoditasMasuk::class, 'komoditas_masuk_id', 'komoditas_masuk_id');
+        return $this->hasOne(KomoditasMasuk::class, 'pembayaran_lelang_id', 'pembayaran_lelang_id');
     }
 
     public function komoditas_keluar()
     {
-        return $this->hasOne(KomoditasKeluar::class, 'komoditas_keluar_id', 'komoditas_keluar_id');
+        return $this->hasOne(KomoditasKeluar::class, 'pembayaran_lelang_id', 'pembayaran_lelang_id');
     }
 
     public function keuangan_masuk()
     {
-        return $this->hasOne(KeuanganMasuk::class, 'keuangan_masuk_id', 'keuangan_masuk_id');
+        return $this->hasOne(KeuanganMasuk::class, 'pembayaran_lelang_id', 'pembayaran_lelang_id');
+    }
+
+    public function verified_log()
+    {
+        return $this->belongsToMany(VerifiedLog::class, 'pembayaran_lelang_verified_log', 'pembayaran_lelang_id', 'verified_log_id');
     }
 }

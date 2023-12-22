@@ -62,4 +62,9 @@ class EventLelang extends Model
     {
         return $this->belongsTo(StatusEventLelang::class, 'status_event_lelang_id', 'status_event_lelang_id');
     }
+
+    public function daftar_peserta_lelang_aktif()
+    {
+        return $this->hasMany(DaftarPesertaLelangAktif::class, 'event_lelang_id', 'event_lelang_id');
+    }
 }

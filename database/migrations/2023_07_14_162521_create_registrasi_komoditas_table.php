@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('registrasi_komoditas_id')->primary();
             $table->uuid('informasi_akun_id');
             $table->uuid('jenis_registrasi_komoditas_id');
+            $table->uuid('status_registrasi_komoditas_id');
             $table->uuid('komoditas_id');
             $table->uuid('mutu_id');
             $table->uuid('gudang_id');
@@ -29,6 +30,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
+            $table->foreign('status_registrasi_komoditas_id')->references('status_registrasi_komoditas_id')->on('status_registrasi_komoditas')->cascadeOnDelete();
             $table->foreign('informasi_akun_id')->references('informasi_akun_id')->on('informasi_akun')->cascadeOnDelete();
             $table->foreign('komoditas_id')->references('komoditas_id')->on('komoditas')->cascadeOnDelete();
             $table->foreign('mutu_id')->references('mutu_id')->on('mutu')->cascadeOnDelete();

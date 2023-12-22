@@ -50,6 +50,11 @@ class InformasiAkun extends Model
         return $this->hasMany(RekeningBank::class, 'informasi_akun_id', 'informasi_akun_id');
     }
 
+    public function notifikasi()
+    {
+        return $this->hasMany(Notifikasi::class, 'informasi_akun_id', 'informasi_akun_id');
+    }
+
     public function dokumen_member()
     {
         return $this->hasMany(DokumenMember::class, 'informasi_akun_id', 'informasi_akun_id');
@@ -108,5 +113,15 @@ class InformasiAkun extends Model
     public function opsi_pembayaran_lelang()
     {
         return $this->hasMany(OpsiPembayaranLelang::class, 'informasi_akun_id', 'informasi_akun_id');
+    }
+
+    public function rating()
+    {
+        return $this->hasOne(Rating::class, 'informasi_akun_id', 'informasi_akun_id');
+    }
+
+    public function rating_detail()
+    {
+        return $this->hasMany(RatingDetail::class, 'informasi_akun_id', 'informasi_akun_id');
     }
 }

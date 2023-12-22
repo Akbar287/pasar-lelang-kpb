@@ -46,6 +46,12 @@ class MemberSeeder extends Seeder
                 $informasi->avatar = 'default.png';
                 $informasi->save();
 
+                $informasi->jaminan()->create([
+                    'total_saldo_jaminan' => 0,
+                    'saldo_teralokasi' => 0,
+                    'saldo_tersedia' => 0
+                ]);
+
                 $areaMember = new AreaMember();
                 $areaMember->desa_id = $desa->desa_id;
                 $areaMember->kode_pos = $faker->postcode();
@@ -115,6 +121,7 @@ class MemberSeeder extends Seeder
                 }
             }
 
+            // Lembaga
             for ($i = 1; $i <= 50; $i++) {
                 $informasi = new InformasiAkun();
                 $informasi->email = $faker->email();
@@ -123,6 +130,12 @@ class MemberSeeder extends Seeder
                 $informasi->no_fax = $faker->phoneNumber();
                 $informasi->avatar = 'default.png';
                 $informasi->save();
+
+                $informasi->jaminan()->create([
+                    'total_saldo_jaminan' => 0,
+                    'saldo_teralokasi' => 0,
+                    'saldo_tersedia' => 0
+                ]);
 
                 $npwp = new Npwp();
                 $npwp->npwp = $faker->nik();
