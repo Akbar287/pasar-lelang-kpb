@@ -48,7 +48,7 @@ class LaporanTransaksiLelangController extends Controller
             $data = PembayaranLelang::whereBetween('pembayaran_lelang.tanggal_pembayaran', [$temp['awal'], $temp['akhir']])->get();
         } else {
             $member = Member::where('member_id', $request->member_id)->first();
-            $data = PembayaranLelang::join('approval_lelang', 'approval_lelang.approval_lelang_id', 'pembayaran_lelang.approval_lelang_id')->join('informasi_akun', 'informasi_akun.informasi_akun_id', 'approval_lelang.informasi_akun_id')->join('member', 'member.informasi_akun_id', 'informasi_akun.informasi_akun_id')->whereBetween('pembayaran_lelang.tanggal_pembayaran', [$temp['awal'], $temp['akhir']])->where('member.member_id', $request->member_id)->first();
+            $data = PembayaranLelang::join('approval_lelang', 'approval_lelang.approval_lelang_id', 'pembayaran_lelang.approval_lelang_id')->join('informasi_akun', 'informasi_akun.informasi_akun_id', 'approval_lelang.informasi_akun_id')->join('member', 'member.informasi_akun_id', 'informasi_akun.informasi_akun_id')->whereBetween('pembayaran_lelang.tanggal_pembayaran', [$temp['awal'], $temp['akhir']])->where('member.member_id', $request->member_id)->get();
         }
 
         return Helper::print_transaksi_lelang($member, $data, $date);

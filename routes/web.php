@@ -30,6 +30,7 @@ use App\Http\Controllers\Blog\BlogPostMetaController;
 use App\Http\Controllers\Blog\BlogTagController;
 use App\Http\Controllers\LelangOnline\AnggotaEventLelangOnlineController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\EksekutifController;
 use App\Http\Controllers\Konfigurasi\KonfigurasiController;
 use App\Http\Controllers\Laporan\LaporanController;
 use App\Http\Controllers\Laporan\LaporanJaminan\LaporanJaminanController;
@@ -43,6 +44,7 @@ use App\Http\Controllers\LelangOffline\OfflineProfileController;
 use App\Http\Controllers\LelangOffline\OperatorPasarLelangController;
 use App\Http\Controllers\LelangOnline\EventLelangOnlineController;
 use App\Http\Controllers\LelangOnline\LelangOnlineController;
+use App\Http\Controllers\MasterData\Anggota\LihatAnggotaKpbController;
 use App\Http\Controllers\MasterData\Anggota\AnggotaDibekukanController;
 use App\Http\Controllers\MasterData\Anggota\AnggotaPasarLelangController;
 use App\Http\Controllers\MasterData\Anggota\AreaMemberController;
@@ -74,6 +76,7 @@ use App\Http\Controllers\Operational\OperationalVerifikasiTransaksiLelangControl
 use App\Http\Controllers\Konfigurasi\RoleController;
 use App\Http\Controllers\Konfigurasi\MutuController;
 use App\Http\Controllers\Konfigurasi\AdminController;
+use App\Http\Controllers\Konfigurasi\DinasController;
 use App\Http\Controllers\Konfigurasi\Aplikasi\AplikasiController;
 use App\Http\Controllers\Konfigurasi\Aplikasi\CarouselController;
 use App\Http\Controllers\Konfigurasi\Aplikasi\KonfigurasiAplikasiController;
@@ -143,12 +146,28 @@ Auth::routes([
 
 Route::middleware('auth')->group(function ($route) {
     $route->get('/notifikasi', [App\Http\Controllers\NotifikasiController::class, 'index'])->name('notifikasi');
+
     $route->get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
     $route->get('/home/api', [App\Http\Controllers\HomeController::class, 'api'])->name('home.api');
+
+    $route->get('/eksekutif', [App\Http\Controllers\EksekutifController::class, 'index'])->name('eksekutif');
+    $route->get('/eksekutif/anggota', [App\Http\Controllers\EksekutifController::class, 'anggota_view'])->name('eksekutif.anggota');
+    $route->get('/eksekutif/saldo-jaminan', [App\Http\Controllers\EksekutifController::class, 'saldo_jaminan_view'])->name('eksekutif.saldo-jaminan');
+    $route->get('/eksekutif/kontrak-lelang', [App\Http\Controllers\EksekutifController::class, 'kontrak_lelang_view'])->name('eksekutif.kontrak-lelang');
+    $route->get('/eksekutif/produk-lelang', [App\Http\Controllers\EksekutifController::class, 'produk_lelang_view'])->name('eksekutif.produk-lelang');
+    $route->get('/eksekutif/event-lelang', [App\Http\Controllers\EksekutifController::class, 'event_lelang_view'])->name('eksekutif.event-lelang');
+
+    $route->get('/eksekutif/api/saldo-jaminan', [App\Http\Controllers\EksekutifController::class, 'saldo_jaminan'])->name('home.eksekutif.saldo_jaminan');
+    $route->get('/eksekutif/api/kontrak', [App\Http\Controllers\EksekutifController::class, 'kontrak'])->name('home.eksekutif.kontrak');
+    $route->get('/eksekutif/api/produk', [App\Http\Controllers\EksekutifController::class, 'produk'])->name('home.eksekutif.produk');
+    $route->get('/eksekutif/api/event', [App\Http\Controllers\EksekutifController::class, 'event'])->name('home.eksekutif.event');
 
     $route->get('/profil', [App\Http\Controllers\HomeController::class, 'profil'])->name('home.profil');
     $route->put('/profil', [App\Http\Controllers\HomeController::class, 'profil_update'])->name('home.profil.update');
     $route->get('/profil/edit', [App\Http\Controllers\HomeController::class, 'profil_edit'])->name('home.profil.edit');
+
+    $route->get('/profil/password', [App\Http\Controllers\HomeController::class, 'profil_pw'])->name('home.profil.password');
+    $route->put('/profil/password', [App\Http\Controllers\HomeController::class, 'profil_pw_edit'])->name('home.profil.password_edit');
 
     $route->get('/profil/area', [App\Http\Controllers\Profil\AreaProfileController::class, 'index'])->name('home.profil.area');
     $route->get('/profil/area/create', [App\Http\Controllers\Profil\AreaProfileController::class, 'create'])->name('home.profil.area.create');
@@ -204,6 +223,11 @@ Route::middleware('auth')->group(function ($route) {
 
     /// Menu Master Data -> Anggota
     $route->get('/master/anggota', AnggotaPasarLelangController::class)->name('master.anggota');
+
+    //// Menu Master Data -> Anggota -> Lihat Anggota KPB
+    $route->get('/master/anggota/kpb', [LihatAnggotaKpbController::class, 'index'])->name('master.anggota.kpb');
+    $route->get('/master/anggota/kpb/{nik}', [LihatAnggotaKpbController::class, 'show'])->name('master.anggota.kpb.show');
+    $route->put('/master/anggota/kpb/{nik}', [LihatAnggotaKpbController::class, 'update'])->name('master.anggota.kpb.edit');
 
     //// Menu Master Data -> Anggota -> Calon Anggota
     $route->get('/master/anggota/calon', [CalonAnggotaController::class, 'index'])->name('master.anggota.calon');
@@ -770,6 +794,13 @@ Route::middleware('auth')->group(function ($route) {
     $route->put('/konfigurasi/admin/{admin}/aktif', [AdminController::class, 'aktif'])->name('konfigurasi.admin.status_aktif');
     $route->put('/konfigurasi/admin/{admin}/non_aktif', [AdminController::class, 'nonaktif'])->name('konfigurasi.admin.status_nonaktif');
     $route->delete('/konfigurasi/admin/{admin}', [AdminController::class, 'destroy'])->name('konfigurasi.admin.destroy');
+
+    /// Dinas
+    $route->get('/konfigurasi/dinas', [DinasController::class, 'index'])->name('konfigurasi.dinas');
+    $route->get('/konfigurasi/dinas/create', [DinasController::class, 'create'])->name('konfigurasi.dinas.create');
+    $route->get('/konfigurasi/dinas/{member}', [DinasController::class, 'show'])->name('konfigurasi.dinas.show');
+    $route->put('/konfigurasi/dinas/{member}/accepted', [DinasController::class, 'accepted'])->name('konfigurasi.dinas.accepted');
+    $route->delete('/konfigurasi/dinas/{member}', [DinasController::class, 'destroy'])->name('konfigurasi.dinas.destroy');
 
     /// Mutu
     $route->get('/konfigurasi/mutu', [MutuController::class, 'index'])->name('konfigurasi.mutu');

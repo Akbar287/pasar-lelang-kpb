@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ApprovalLelang;
 use App\Models\DokumenProduk;
+use App\Models\Jaminan;
 use App\Models\Kabupaten;
 use App\Models\Kecamatan;
 use App\Models\Komoditas;
@@ -10,12 +12,15 @@ use App\Models\Lelang;
 use App\Models\Member;
 use App\Models\Npwp;
 use App\Models\Provinsi;
+use App\Models\Role;
 use App\Models\StatusKontrak;
 use App\Models\StatusMember;
+use App\Models\Userlogin;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class HomeController extends Controller
@@ -24,12 +29,8 @@ class HomeController extends Controller
     {
         date_default_timezone_set('Asia/Jakarta');
     }
-    /**
-     * Show the application dashboard.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
-     */
-    public function index()
+
+    public function index(Request $request)
     {
         if (is_null(Auth::user()->operator_pasar_lelang()->first())) {
             if (is_null(Auth::user()->informasi_akun()->first()->member()->first()->admin()->first())) {
@@ -37,8 +38,19 @@ class HomeController extends Controller
                 $data = [
                     'kontrak' => Auth::user()->informasi_akun()->first()->kontrak()->count(),
                     'produk' => Lelang::join('kontrak', 'kontrak.kontrak_id', 'lelang.kontrak_id')->where('kontrak.informasi_akun_id', Auth::user()->informasi_akun_id)->count(),
-                    'jaminan' => Auth::user()->informasi_akun()->first()->jaminan()->first()->total_saldo_jaminan,
+                    'jaminan' => Auth::user()->informasi_akun()->first()->jaminan()->first()->total_saldo_jaminan ?? 0,
                     'saldo' => !is_null(Auth::user()->informasi_akun()->first()->rekening_bank()->select(DB::raw('SUM("saldo")'))->first()->sum) ? number_format(Auth::user()->informasi_akun()->first()->rekening_bank()->select(DB::raw('SUM("saldo")'))->first()->sum, 0, ".", ",") : 0,
+                ];
+            }
+            if (Auth::user()->informasi_akun()->first()->member()->first()->role()->where('nama_role', 'ROLE_DINAS')->count() > 0) {
+                //Dinas
+                $data = [
+                    'anggota' => Member::count(),
+                    'produk' => Lelang::join('kontrak', 'kontrak.kontrak_id', 'lelang.kontrak_id')->count(),
+                    'jaminan' => Jaminan::selectRaw('SUM(total_saldo_jaminan)')->first()->sum,
+                    'transaksi' => ApprovalLelang::selectRaw('SUM("harga_pemenang")')->join('lelang', 'lelang.lelang_id', 'approval_lelang.lelang_id')->whereBetween('lelang.created_at', [Carbon::now()->startOfYear(), Carbon::now()->endOfYear()])->first()->sum ?? 0,
+                    'summary_anggota' => StatusMember::get(), // Nama Status | Jumlah Member
+                    'role_anggota' => Role::get(), // Nama Role | Jumlah Member
                 ];
             }
             if (!is_null(Auth::user()->informasi_akun()->first()->member()->first()->admin()->first())) {
@@ -287,5 +299,32 @@ class HomeController extends Controller
         }
 
         return response($storage)->header("Content-Type", 'image/jpeg');
+    }
+
+    public function profil_pw()
+    {
+        return view('auth/password_change');
+    }
+    public function profil_pw_edit(Request $request)
+    {
+        $request->validate([
+            'old_password' => ['required', 'min:6'],
+            'new_password' => ['required', 'min:6'],
+            'confirmation_password' => ['required', 'min:6'],
+        ]);
+
+        if (Hash::check($request->old_password, Auth::user()->password)) {
+            if ($request->new_password == $request->confirmation_password) {
+                Userlogin::where('informasi_akun_id', Auth::user()->informasi_akun_id)->first()->update([
+                    'password' => Hash::make($request->new_password)
+                ]);
+
+                return redirect('/profil/password')->with('msg', '<div class="alert alert-success alert-dismissible fade show" role="alert"><strong>Sukses!</strong> Password Berhasil Diubah.<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+            } else {
+                return redirect('/profil/password')->with('msg', '<div class="alert alert-danger alert-dismissible fade show" role="alert"><strong>Gagal!</strong> Konfirmasi Password Tidak Sesuai.<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+            }
+        } else {
+            return redirect('/profil/password')->with('msg', '<div class="alert alert-danger alert-dismissible fade show" role="alert"><strong>Gagal!</strong> Password Lama Salah.<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+        }
     }
 }

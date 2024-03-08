@@ -336,6 +336,7 @@
                                         <a type="button" href="{{ route('home.profil.area') }}" class="btn btn-info mr-2"><i class="fas fa-map"></i> Area</a>
                                         <a type="button" href="{{ route('home.profil.rekening_bank') }}" class="btn btn-warning mr-2"><i class="fas fa-building"></i> Rekening Bank</a>
                                         <a type="button" href="{{ route('home.profil.dokumen') }}" class="btn btn-danger mr-2"><i class="fas fa-file"></i> Dokumen</a>
+                                        <a type="button" href="{{ route('home.profil.password') }}" class="btn btn-info mr-2"><i class="fas fa-key"></i> Ubah Password</a>
                                         <a type="button" href="{{ route('home.profil.edit') }}" class="btn btn-success mr-2"><i class="fas fa-pen"></i> Ubah</a>
                                     </div>
                                 </div>

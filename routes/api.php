@@ -5,6 +5,7 @@ use App\Http\Controllers\Administrasi\JaminanLelang\PenerimaanJaminanController;
 use App\Http\Controllers\Administrasi\KasBank\ListKasBankController;
 use App\Http\Controllers\Administrasi\KasBank\PenerimaanKasBankController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\EksekutifController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Konfigurasi\Jenis\JenisHargaController;
 use App\Http\Controllers\Konfigurasi\Jenis\JenisInisiasiController;
@@ -49,6 +50,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->group(function ($route) {
     $route->post('login', [AuthController::class, 'login'])->name('api.login');
     $route->post('register', [AuthController::class, 'register'])->name('api.register');
+
+    $route->get('/eksekutif/home', [EksekutifController::class, 'api_home'])->name('api.eksekutif.home');
 
     $route->get('/set_area', [DesaController::class, 'set_area'])->name('api.set_area');
     $route->get('/provinsi', [ProvinsiController::class, 'api_provinsi'])->name('api.provinsi'); //Provinsi
@@ -95,6 +98,15 @@ Route::prefix('v1')->group(function ($route) {
 
 Route::middleware('jwt')->prefix('v1')->group(function ($route) {
 
+    // EksekutifController
+    $route->get('/anggota', [EksekutifController::class, 'anggota'])->name('api.eksekutif.anggota');
+    $route->get('/saldo-jaminan', [EksekutifController::class, 'saldo_jaminan'])->name('api.eksekutif.saldo_jaminan');
+    $route->get('/kontrak-lelang', [EksekutifController::class, 'kontrak_lelang'])->name('api.eksekutif.kontrak_lelang');
+    $route->get('/komoditas', [EksekutifController::class, 'komoditas'])->name('api.eksekutif.komoditas');
+    $route->get('/produk-lelang', [EksekutifController::class, 'produk_lelang'])->name('api.eksekutif.produk_lelang');
+    $route->get('/event-lelang', [EksekutifController::class, 'event_lelang'])->name('api.eksekutif.event_lelang');
+    $route->get('/transaksi-lelang', [EksekutifController::class, 'transaksi_lelang'])->name('api.eksekutif.transaksi_lelang');
+
     // AuthController
     $route->post('/logout', [AuthController::class, 'logout'])->name('api.logout');
     $route->post('/refresh', [AuthController::class, 'refreshToken'])->name('api.refresh');
@@ -103,7 +115,7 @@ Route::middleware('jwt')->prefix('v1')->group(function ($route) {
 
     // User Profil
     $route->get('/profile', [AuthController::class, 'profile'])->name('api.profile');
-    $route->get('/activity-log', [Activit::class, 'profile'])->name('api.profile');
+    $route->get('/activity-log', [ActivityLogController::class, 'profile'])->name('api.profile');
 
     //Notifikasi
     $route->get('/notifikasi', [NotifikasiController::class, 'api_notifikasi'])->name('api.notifikasi');

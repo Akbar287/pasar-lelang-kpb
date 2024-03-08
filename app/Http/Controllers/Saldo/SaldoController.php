@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Saldo;
 
 use App\Http\Controllers\Controller;
+use App\Models\Jaminan;
 use App\Models\JenisPengeluaranJaminan;
 use App\Models\JenisTransaksi;
 use App\Models\Keuangan;
@@ -225,8 +226,18 @@ class SaldoController extends Controller
             'jumlah' => ['required']
         ]);
 
+        if (Auth::user()->informasi_akun()->first()->jaminan()->count() == 0) {
+            $jaminan = Jaminan::create([
+                'informasi_akun_id' => Auth::user()->informasi_akun_id,
+                'total_saldo_jaminan' => 0,
+                'saldo_teralokasi' => 0,
+                'saldo_tersedia' => 0,
+            ]);
+        } else {
+            $jaminan = Jaminan::where('informasi_akun_id', Auth::user()->informasi_akun_id)->first();
+        }
         // Penerimaan Kas Jaminan
-        $detailJaminan = Auth::user()->informasi_akun()->first()->jaminan()->first()->detail_jaminan()->create([
+        $detailJaminan = $jaminan->detail_jaminan()->create([
             'tanggal_transaksi' => date('Y-m-d'),
             'nilai_jaminan' => str_replace(',', '', request('jumlah')),
             'nilai_penyesuaian' => str_replace(',', '', request('jumlah')),

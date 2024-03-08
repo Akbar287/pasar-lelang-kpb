@@ -10,6 +10,10 @@ $(function () {
     let penawaranPadaHargaSatuan = null;
     let routeName = ($('meta[name=route]')[0].content);
     let csrf = ($('meta[name=csrf-token]')[0].content);
+    let role = '';
+    if (routeName != 'login') {
+        role = ($('meta[name=role]')[0].content);
+    }
 
     console.log(routeName)
 
@@ -29,6 +33,15 @@ $(function () {
     if(routeName == 'home.saldo') {
         $('.table-rekening-bank').DataTable();
     }
+    if (routeName == 'login') {
+        $('#see_password').on('click', function () {
+            if($(this).parent().siblings().attr('type') == 'password'){
+                $(this).parent().siblings().attr('type', 'text');
+            } else {
+                $(this).parent().siblings().attr('type', 'password');
+            }
+        });
+    }
     if($('.thousand-style').toArray().length > 0) {
         $('.thousand-style').toArray().forEach(x => {
             new Cleave(x, {
@@ -38,52 +51,721 @@ $(function () {
         });
     }
     if (routeName == 'home') {
+        if(role !== 'ROLE_DINAS') {
+            $.ajax({
+                url: document.location.origin + '/home/api',
+                data: {
+                    _token: csrf,
+                    jenis: 'transaksi_lelang',
+                },
+                dataType: 'json',
+                method: 'get',
+                beforeSend: function() {},
+                success: function(res) {
+                    new Chart(document.getElementById("chart_primary").getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: ["Online", "Offline", "Hybrid"],
+                            datasets: [{
+                                label: 'Transaksi Lelang',
+                                data: [res.data.lelang.online, res.data.lelang.offline, res.data.lelang.hybrid],
+                                borderWidth: 5,
+                                borderColor: '#6777ef',
+                                backgroundColor: 'transparent',
+                                pointBorderColor: '#6777ef',
+                                pointRadius: 4
+                            }]
+                        },
+                    });
+                    new Chart(document.getElementById("chart_secondary").getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: ["Online", "Offline", "Hybrid"],
+                            datasets: [{
+                                label: 'Produk Di Lelang',
+                                data: [res.data.produk.online, res.data.produk.offline, res.data.produk.hybrid],
+                                borderWidth: 5,
+                                borderColor: '#6777ef',
+                                backgroundColor: 'transparent',
+                                pointBorderColor: '#6777ef',
+                                pointRadius: 4
+                            }]
+                        },
+                    });
+                },
+                error: function(err) {
+                    console.error(err);
+                }
+            });
+        } else {
+            // Grafik
+
+            // Saldo Jaminan
+            $.ajax({
+                url: document.location.origin + '/eksekutif/api/saldo-jaminan',
+                data: {
+                    _token: csrf,
+                    type: 'grafik_sebaran',
+                },
+                dataType: 'json',
+                method: 'get',
+                beforeSend: function() {},
+                success: function(res) {
+                    if(res.status == 'success') {
+                        new Chart(document.getElementById("chart_summary_jaminan_main").getContext('2d'), {
+                            type: 'bar',
+                            data: {
+                                labels: [
+                                    'Saldo Teralokasi',
+                                    'Saldo Tersedia (Bebas)'
+                                ],
+                                datasets: [{
+                                    label: 'Sebaran Saldo Jaminan',
+                                    data: [res.data.saldo_teralokasi, res.data.saldo_tersedia],
+                                    backgroundColor: [
+                                    'rgb(255, 99, 132)',
+                                    'rgb(54, 162, 235)'
+                                    ],
+                                    hoverOffset: 4
+                                }]
+                            },
+                        });
+                        new Chart(document.getElementById("chart_summary_jaminan").getContext('2d'), {
+                            type: 'bar',
+                            data: {
+                                labels: [
+                                    'Saldo Teralokasi',
+                                    'Saldo Tersedia (Bebas)'
+                                ],
+                                datasets: [{
+                                    label: 'Sebaran Saldo Jaminan',
+                                    data: [res.data.saldo_teralokasi, res.data.saldo_tersedia],
+                                    backgroundColor: [
+                                    'rgb(255, 99, 132)',
+                                    'rgb(54, 162, 235)'
+                                    ],
+                                    hoverOffset: 4
+                                }]
+                            },
+                        });
+
+                        $('td#saldo_teralokasi').html(Intl.NumberFormat('id-ID', {style: 'currency' ,currency: 'IDR', }).format(res.data.saldo_teralokasi) )
+                        $('td#saldo_tersedia').html(Intl.NumberFormat('id-ID', {style: 'currency' ,currency: 'IDR', }).format(res.data.saldo_tersedia) )
+                    }
+                },
+                error: function(err) {
+                    console.error(err);
+                }
+            });
+
+            // Kontrak
+            $.ajax({
+                url: document.location.origin + '/eksekutif/api/kontrak',
+                data: {
+                    _token: csrf,
+                    type: 'grafik_sebaran',
+                },
+                dataType: 'json',
+                method: 'get',
+                beforeSend: function() {},
+                success: function(res) {
+                    if(res.status == 'success') {
+                        new Chart(document.getElementById("chart_komoditas_jaminan_main").getContext('2d'), {
+                            type: 'bar',
+                            data: {
+                                labels: res.data.komoditas.label,
+                                datasets: [{
+                                    label: 'Kontrak by Komoditas',
+                                    data: res.data.komoditas.data,
+                                    backgroundColor: res.data.komoditas.bg,
+                                    hoverOffset: 4
+                                }]
+                            },
+                        });
+                        new Chart(document.getElementById("chart_perdagangan_jaminan").getContext('2d'), {
+                            type: 'bar',
+                            data: {
+                                labels: res.data.perdagangan.label,
+                                datasets: [{
+                                    label: 'Kontrak by Jenis Perdagangan',
+                                    data: res.data.perdagangan.data,
+                                    backgroundColor: res.data.perdagangan.bg,
+                                    hoverOffset: 4
+                                }]
+                            },
+                        });
+                    }
+                },
+                error: function(err) {
+                    console.error(err);
+                }
+            });
+
+            // Produk Lelang
+            $.ajax({
+                url: document.location.origin + '/eksekutif/api/produk',
+                data: {
+                    _token: csrf,
+                    type: 'grafik_sebaran',
+                },
+                dataType: 'json',
+                method: 'get',
+                beforeSend: function() {},
+                success: function(res) {
+                    if(res.status == 'success') {
+                        new Chart(document.getElementById("chart_pelelangan_produk").getContext('2d'), {
+                            type: 'bar',
+                            data: {
+                                labels: [
+                                    'Sukses Terjual',
+                                    'Belum Terjual'
+                                ],
+                                datasets: [{
+                                    label: 'Produk lelang Terjual',
+                                    data: [
+                                        res.data.lelang_sukses.sukses,
+                                        res.data.lelang_sukses.semua - res.data.lelang_sukses.sukses,
+                                    ],
+                                    backgroundColor: [
+                                        'rgb(255, 99, 132)',
+                                        'rgb(54, 162, 235)'
+                                    ],
+                                    hoverOffset: 4
+                                }]
+                            },
+                        });
+                        new Chart(document.getElementById("chart_platform_produk").getContext('2d'), {
+                            type: 'bar',
+                            data: {
+                                labels: [
+                                    'online',
+                                    'offline',
+                                    'hybrid'
+                                ],
+                                datasets: [{
+                                    label: 'Platform Produk lelang',
+                                    data: [
+                                        res.data.lelang_platform.online,
+                                        res.data.lelang_platform.offline,
+                                        res.data.lelang_platform.hybrid
+                                    ],
+                                    backgroundColor: [
+                                        'rgb(255, 99, 132)',
+                                        'rgb(170, 120, 132)',
+                                        'rgb(54, 162, 235)'
+                                    ],
+                                    hoverOffset: 4
+                                }]
+                            },
+                        });
+                    }
+                },
+                error: function(err) {
+                    console.error(err);
+                }
+            });
+
+            $('#event_lelang_id').select2({
+                minimumInputLength: 2,
+                tags: [],
+                ajax: {
+                    url: document.location.origin + '/laporan/event_lelang/api',
+                    dataType: 'json',
+                    delay: 250,
+                    type: 'GET',
+                    data: function (params) {
+                        return {
+                            token: csrf,
+                            q: params.term, // search term
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: $.map(data.data, function (item) {
+                                return {
+                                    text: item.nama_lelang + ' (' + item.event_kode + ')',
+                                    id: item.event_lelang_id
+                                }
+                            })
+                        };
+                    },
+                    cache: true
+                },
+            });
+
+            // End Grafik
+            $('select[name=laporan]').on('change', function(e) {
+                let selectMenu = $('select[name=laporan]').val();
+                console.log(selectMenu);
+
+                if(selectMenu == 'main_menu') {
+                    $('.display-all').addClass('d-none')
+                    $('.display-all.main-menu-view').removeClass('d-none')
+                }
+                if(selectMenu == 'anggota') {
+                    $('.display-all').addClass('d-none')
+                    $('.display-all.anggota-view').removeClass('d-none')
+                }
+                if(selectMenu == 'saldo_jaminan') {
+                    $('.display-all').addClass('d-none')
+                    $('.display-all.saldo_jaminan-view').removeClass('d-none')
+                }
+                if(selectMenu == 'kontrak_lelang') {
+                    $('.display-all').addClass('d-none')
+                    $('.display-all.kontrak_lelang-view').removeClass('d-none')
+                }
+                if(selectMenu == 'produk_lelang') {
+                    $('.display-all').addClass('d-none')
+                    $('.display-all.produk_lelang-view').removeClass('d-none')
+                }
+                if(selectMenu == 'event_lelang') {
+                    $('.display-all').addClass('d-none');
+                    $('.display-all.event_lelang-view').removeClass('d-none');
+
+                    $('#event_lelang_id').on('change', function(e) {
+                        $.ajax({
+                            url: document.location.origin + '/eksekutif/api/event',
+                            data: {
+                                _token: csrf,
+                                type: 'event_detail',
+                                data: e.target.value
+                            },
+                            dataType: 'json',
+                            method: 'get',
+                            beforeSend: function() {
+                                $('#event_kode').text('Loading...');
+                                $('#jam_mulai').text('Loading...');
+                                $('#nama_lelang').text('Loading...');
+                                $('#jam_selesai').text('Loading...');
+                                $('#tanggal').text('Loading...');
+                                $('#total_peserta').text('Loading...');
+                                $('#lokasi').text('Loading...');
+                                $('#total_produk').text('Loading...');
+                                $('#ketua_lelang').text('Loading...');
+                                $('#status').text('Loading...');
+                                $('#total_penjualan_lelang').text('Loading...');
+                                $('tbody#peserta_event').append('<tr><td colspan="2">Loading...</td></tr>')
+                                $('tbody#penjual_event').append('<tr><td colspan="3">Loading...</td></tr>')
+                                $('tbody#produk_lelang').append('<tr><td colspan="7">Loading...</td></tr>')
+                            },
+                            success: function(res) {
+                                if(res.status == 'success') {
+                                    $('#event_kode').text(res.data.deskripsi.event_kode);
+                                    $('#jam_mulai').text(res.data.deskripsi.jam_mulai);
+                                    $('#nama_lelang').text(res.data.deskripsi.nama_lelang);
+                                    $('#jam_selesai').text(res.data.deskripsi.jam_selesai);
+                                    $('#tanggal').text(res.data.deskripsi.tanggal_lelang);
+                                    $('#total_peserta').text(res.data.deskripsi.total_peserta);
+                                    $('#lokasi').text(res.data.deskripsi.lokasi);
+                                    $('#total_produk').text(res.data.deskripsi.total_produk);
+                                    $('#ketua_lelang').text(res.data.deskripsi.ketua_lelang);
+                                    $('#status').text(res.data.deskripsi.status);
+                                    $('#total_penjualan_lelang').text(Intl.NumberFormat('id-ID', {style: 'currency' ,currency: 'IDR', }).format(res.data.deskripsi.total_penjualan));
+                                    $('tbody#peserta_event').children().remove();
+                                    $('tbody#penjual_event').children().remove();
+                                    $('tbody#produk_lelang').children().remove();
+
+                                    let peserta = '';
+                                    for(let i = 0; i < res.data.peserta.length; i++) {
+                                        peserta += '<tr><td>'+ res.data.peserta[i].kode_peserta_lelang +'</td><td>'+ res.data.peserta[i].nama +'</td></tr>';
+                                    }
+                                    $('tbody#peserta_event').append(peserta);
+
+                                    peserta = '';
+                                    for(let i = 0; i < res.data.penjual.length; i++) {
+                                        peserta += '<tr><td>'+ (i + 1) +'</td><td>'+ res.data.penjual[i].nama_penjual +'</td><td>'+ res.data.penjual[i].komoditas +'</td></tr>';
+                                    }
+                                    $('tbody#penjual_event').append(peserta);
+
+                                    peserta = '';
+                                    for(let i = 0; i < res.data.produk.length; i++) {
+                                        peserta += '<tr><td>'+ res.data.produk[i].nomor_lelang +'</td><td>'+ res.data.produk[i].komoditas +'</td><td>'+ res.data.produk[i].judul +'</td><td>'+ Intl.NumberFormat('id-ID', {style: 'currency' ,currency: 'IDR', }).format(res.data.produk[i].harga_awal) +'</td><td>'+ Intl.NumberFormat('id-ID', {style: 'currency' ,currency: 'IDR', }).format(res.data.produk[i].kelipatan) +'</td><td>'+ Intl.NumberFormat('id-ID', {style: 'currency' ,currency: 'IDR', }).format(res.data.produk[i].harga_pemenang) +'</td><td>'+ res.data.produk[i].status +'</td></tr>';
+                                    }
+                                    $('tbody#produk_lelang').append(peserta);
+
+
+                                } else {
+                                    $('#event_kode').text('Terjadi Kesalahan...');
+                                    $('#jam_mulai').text('Terjadi Kesalahan...');
+                                    $('#nama_lelang').text('Terjadi Kesalahan...');
+                                    $('#jam_selesai').text('Terjadi Kesalahan...');
+                                    $('#tanggal').text('Terjadi Kesalahan...');
+                                    $('#total_peserta').text('Terjadi Kesalahan...');
+                                    $('#lokasi').text('Terjadi Kesalahan...');
+                                    $('#total_produk').text('Terjadi Kesalahan...');
+                                    $('#ketua_lelang').text('Terjadi Kesalahan...');
+                                    $('#status').text('Terjadi Kesalahan...');
+                                    $('#total_penjualan_lelang').text('Terjadi Kesalahan...');
+                                    $('tbody#peserta_event').children().remove().append('<tr><td colspan="2">Terjadi Kesalahan...</td></tr>')
+                                    $('tbody#penjual_event').children().remove().append('<tr><td colspan="3">Terjadi Kesalahan...</td></tr>')
+                                    $('tbody#produk_lelang').children().remove().append('<tr><td colspan="7">Terjadi Kesalahan...</td></tr>')
+                                }
+                            },
+                            error: function(err) {
+                                console.error(err);
+                                    $('#event_kode').text('Error...');
+                                    $('#jam_mulai').text('Error...');
+                                    $('#nama_lelang').text('Error...');
+                                    $('#jam_selesai').text('Error...');
+                                    $('#tanggal').text('Error...');
+                                    $('#total_peserta').text('Error...');
+                                    $('#lokasi').text('Error...');
+                                    $('#total_produk').text('Error...');
+                                    $('#ketua_lelang').text('Error...');
+                                    $('#status').text('Error...');
+                                    $('#total_penjualan_lelang').text('Error...');
+                                    $('tbody#peserta_event').children().remove().append('<tr><td colspan="2">Error...</td></tr>')
+                                    $('tbody#penjual_event').children().remove().append('<tr><td colspan="3">Error...</td></tr>')
+                                    $('tbody#produk_lelang').children().remove().append('<tr><td colspan="7">Error...</td></tr>')
+                            }
+                        });
+                    })
+                }
+
+                if(selectMenu == 'transaksi_lelang') {
+                    $('.display-all').addClass('d-none')
+                    $('.display-all.transaksi_lelang-view').removeClass('d-none')
+                }
+            })
+
+
+            $('.table-anggota').DataTable({
+                language: {
+                    url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+                },
+            });
+        }
+
+    }
+
+    if(routeName == 'eksekutif.anggota') {
+        $('.table-anggota').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+        });
+    }
+    if(routeName == 'eksekutif.saldo-jaminan') {
+        $('.table-anggota').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+        });
         $.ajax({
-            url: document.location.origin + '/home/api',
+            url: document.location.origin + '/eksekutif/api/saldo-jaminan',
             data: {
                 _token: csrf,
-                jenis: 'transaksi_lelang',
+                type: 'grafik_sebaran',
             },
             dataType: 'json',
             method: 'get',
             beforeSend: function() {},
             success: function(res) {
-                new Chart(document.getElementById("chart_primary").getContext('2d'), {
-                    type: 'bar',
-                    data: {
-                        labels: ["Online", "Offline", "Hybrid"],
-                        datasets: [{
-                            label: 'Transaksi Lelang',
-                            data: [res.data.lelang.online, res.data.lelang.offline, res.data.lelang.hybrid],
-                            borderWidth: 5,
-                            borderColor: '#6777ef',
-                            backgroundColor: 'transparent',
-                            pointBorderColor: '#6777ef',
-                            pointRadius: 4
-                        }]
-                    },
-                });
-                new Chart(document.getElementById("chart_secondary").getContext('2d'), {
-                    type: 'bar',
-                    data: {
-                        labels: ["Online", "Offline", "Hybrid"],
-                        datasets: [{
-                            label: 'Produk Di Lelang',
-                            data: [res.data.produk.online, res.data.produk.offline, res.data.produk.hybrid],
-                            borderWidth: 5,
-                            borderColor: '#6777ef',
-                            backgroundColor: 'transparent',
-                            pointBorderColor: '#6777ef',
-                            pointRadius: 4
-                        }]
-                    },
-                });
+                if(res.status == 'success') {
+                    new Chart(document.getElementById("chart_summary_jaminan").getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: [
+                                'Saldo Teralokasi',
+                                'Saldo Tersedia (Bebas)'
+                            ],
+                            datasets: [{
+                                label: 'Sebaran Saldo Jaminan',
+                                data: [res.data.saldo_teralokasi, res.data.saldo_tersedia],
+                                backgroundColor: [
+                                'rgb(255, 99, 132)',
+                                'rgb(54, 162, 235)'
+                                ],
+                                hoverOffset: 4
+                            }]
+                        },
+                    });
+
+                    $('td#saldo_teralokasi').html(Intl.NumberFormat('id-ID', {style: 'currency' ,currency: 'IDR', }).format(res.data.saldo_teralokasi) )
+                    $('td#saldo_tersedia').html(Intl.NumberFormat('id-ID', {style: 'currency' ,currency: 'IDR', }).format(res.data.saldo_tersedia) )
+                }
+            },
+            error: function(err) {
+                console.error(err);
+            }
+        });
+    }
+    if(routeName == 'eksekutif.kontrak-lelang') {
+        $('.table-anggota').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+        });
+        $.ajax({
+            url: document.location.origin + '/eksekutif/api/kontrak',
+            data: {
+                _token: csrf,
+                type: 'grafik_sebaran',
+            },
+            dataType: 'json',
+            method: 'get',
+            beforeSend: function() {},
+            success: function(res) {
+                if(res.status == 'success') {
+                    new Chart(document.getElementById("chart_komoditas_jaminan").getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: res.data.komoditas.label,
+                            datasets: [{
+                                label: 'Kontrak by Komoditas',
+                                data: res.data.komoditas.data,
+                                backgroundColor: res.data.komoditas.bg,
+                                hoverOffset: 4
+                            }]
+                        },
+                    });
+                    new Chart(document.getElementById("chart_perdagangan_jaminan").getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: res.data.perdagangan.label,
+                            datasets: [{
+                                label: 'Kontrak by Jenis Perdagangan',
+                                data: res.data.perdagangan.data,
+                                backgroundColor: res.data.perdagangan.bg,
+                                hoverOffset: 4
+                            }]
+                        },
+                    });
+                }
+            },
+            error: function(err) {
+                console.error(err);
+            }
+        });
+    }
+    if(routeName == 'eksekutif.produk-lelang') {
+        $('.table-anggota').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+        });
+        $.ajax({
+            url: document.location.origin + '/eksekutif/api/produk',
+            data: {
+                _token: csrf,
+                type: 'grafik_sebaran',
+            },
+            dataType: 'json',
+            method: 'get',
+            beforeSend: function() {},
+            success: function(res) {
+                if(res.status == 'success') {
+                    new Chart(document.getElementById("chart_pelelangan_produk").getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: [
+                                'Sukses Terjual',
+                                'Belum Terjual'
+                            ],
+                            datasets: [{
+                                label: 'Produk lelang Terjual',
+                                data: [
+                                    res.data.lelang_sukses.sukses,
+                                    res.data.lelang_sukses.semua - res.data.lelang_sukses.sukses,
+                                ],
+                                backgroundColor: [
+                                    'rgb(255, 99, 132)',
+                                    'rgb(54, 162, 235)'
+                                ],
+                                hoverOffset: 4
+                            }]
+                        },
+                    });
+                    new Chart(document.getElementById("chart_platform_produk").getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: [
+                                'online',
+                                'offline',
+                                'hybrid'
+                            ],
+                            datasets: [{
+                                label: 'Platform Produk lelang',
+                                data: [
+                                    res.data.lelang_platform.online,
+                                    res.data.lelang_platform.offline,
+                                    res.data.lelang_platform.hybrid
+                                ],
+                                backgroundColor: [
+                                    'rgb(255, 99, 132)',
+                                    'rgb(170, 120, 132)',
+                                    'rgb(54, 162, 235)'
+                                ],
+                                hoverOffset: 4
+                            }]
+                        },
+                    });
+                }
             },
             error: function(err) {
                 console.error(err);
             }
         });
 
+        $('#event_lelang_id').select2({
+            minimumInputLength: 2,
+            tags: [],
+            ajax: {
+                url: document.location.origin + '/laporan/event_lelang/api',
+                dataType: 'json',
+                delay: 250,
+                type: 'GET',
+                data: function (params) {
+                    return {
+                        token: csrf,
+                        q: params.term, // search term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.nama_lelang + ' (' + item.event_kode + ')',
+                                id: item.event_lelang_id
+                            }
+                        })
+                    };
+                },
+                cache: true
+            },
+        });
+    }
+    if (routeName == 'eksekutif.event-lelang') {
+        $('.table-anggota').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+        });
+        $('#event_lelang_id').select2({
+            minimumInputLength: 2,
+            tags: [],
+            ajax: {
+                url: document.location.origin + '/laporan/event_lelang/api',
+                dataType: 'json',
+                delay: 250,
+                type: 'GET',
+                data: function (params) {
+                    return {
+                        token: csrf,
+                        q: params.term, // search term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.nama_lelang + ' (' + item.event_kode + ')',
+                                id: item.event_lelang_id
+                            }
+                        })
+                    };
+                },
+                cache: true
+            },
+        });
+        $('#event_lelang_id').on('change', function(e) {
+            $.ajax({
+                url: document.location.origin + '/eksekutif/api/event',
+                data: {
+                    _token: csrf,
+                    type: 'event_detail',
+                    data: e.target.value
+                },
+                dataType: 'json',
+                method: 'get',
+                beforeSend: function() {
+                    $('#event_kode').text('Loading...');
+                    $('#jam_mulai').text('Loading...');
+                    $('#nama_lelang').text('Loading...');
+                    $('#jam_selesai').text('Loading...');
+                    $('#tanggal').text('Loading...');
+                    $('#total_peserta').text('Loading...');
+                    $('#lokasi').text('Loading...');
+                    $('#total_produk').text('Loading...');
+                    $('#ketua_lelang').text('Loading...');
+                    $('#status').text('Loading...');
+                    $('#total_penjualan_lelang').text('Loading...');
+                    $('tbody#peserta_event').append('<tr><td colspan="2">Loading...</td></tr>')
+                    $('tbody#penjual_event').append('<tr><td colspan="3">Loading...</td></tr>')
+                    $('tbody#produk_lelang').append('<tr><td colspan="7">Loading...</td></tr>')
+                },
+                success: function(res) {
+                    if(res.status == 'success') {
+                        $('#event_kode').text(res.data.deskripsi.event_kode);
+                        $('#jam_mulai').text(res.data.deskripsi.jam_mulai);
+                        $('#nama_lelang').text(res.data.deskripsi.nama_lelang);
+                        $('#jam_selesai').text(res.data.deskripsi.jam_selesai);
+                        $('#tanggal').text(res.data.deskripsi.tanggal_lelang);
+                        $('#total_peserta').text(res.data.deskripsi.total_peserta);
+                        $('#lokasi').text(res.data.deskripsi.lokasi);
+                        $('#total_produk').text(res.data.deskripsi.total_produk);
+                        $('#ketua_lelang').text(res.data.deskripsi.ketua_lelang);
+                        $('#status').text(res.data.deskripsi.status);
+                        $('#total_penjualan_lelang').text(Intl.NumberFormat('id-ID', {style: 'currency' ,currency: 'IDR', }).format(res.data.deskripsi.total_penjualan));
+                        $('tbody#peserta_event').children().remove();
+                        $('tbody#penjual_event').children().remove();
+                        $('tbody#produk_lelang').children().remove();
+
+                        let peserta = '';
+                        for(let i = 0; i < res.data.peserta.length; i++) {
+                            peserta += '<tr><td>'+ res.data.peserta[i].kode_peserta_lelang +'</td><td>'+ res.data.peserta[i].nama +'</td></tr>';
+                        }
+                        $('tbody#peserta_event').append(peserta);
+
+                        peserta = '';
+                        for(let i = 0; i < res.data.penjual.length; i++) {
+                            peserta += '<tr><td>'+ (i + 1) +'</td><td>'+ res.data.penjual[i].nama_penjual +'</td><td>'+ res.data.penjual[i].komoditas +'</td></tr>';
+                        }
+                        $('tbody#penjual_event').append(peserta);
+
+                        peserta = '';
+                        for(let i = 0; i < res.data.produk.length; i++) {
+                            peserta += '<tr><td>'+ res.data.produk[i].nomor_lelang +'</td><td>'+ res.data.produk[i].komoditas +'</td><td>'+ res.data.produk[i].judul +'</td><td>'+ Intl.NumberFormat('id-ID', {style: 'currency' ,currency: 'IDR', }).format(res.data.produk[i].harga_awal) +'</td><td>'+ Intl.NumberFormat('id-ID', {style: 'currency' ,currency: 'IDR', }).format(res.data.produk[i].kelipatan) +'</td><td>'+ Intl.NumberFormat('id-ID', {style: 'currency' ,currency: 'IDR', }).format(res.data.produk[i].harga_pemenang) +'</td><td>'+ res.data.produk[i].status +'</td></tr>';
+                        }
+                        $('tbody#produk_lelang').append(peserta);
+
+
+                    } else {
+                        $('#event_kode').text('Terjadi Kesalahan...');
+                        $('#jam_mulai').text('Terjadi Kesalahan...');
+                        $('#nama_lelang').text('Terjadi Kesalahan...');
+                        $('#jam_selesai').text('Terjadi Kesalahan...');
+                        $('#tanggal').text('Terjadi Kesalahan...');
+                        $('#total_peserta').text('Terjadi Kesalahan...');
+                        $('#lokasi').text('Terjadi Kesalahan...');
+                        $('#total_produk').text('Terjadi Kesalahan...');
+                        $('#ketua_lelang').text('Terjadi Kesalahan...');
+                        $('#status').text('Terjadi Kesalahan...');
+                        $('#total_penjualan_lelang').text('Terjadi Kesalahan...');
+                        $('tbody#peserta_event').children().remove().append('<tr><td colspan="2">Terjadi Kesalahan...</td></tr>')
+                        $('tbody#penjual_event').children().remove().append('<tr><td colspan="3">Terjadi Kesalahan...</td></tr>')
+                        $('tbody#produk_lelang').children().remove().append('<tr><td colspan="7">Terjadi Kesalahan...</td></tr>')
+                    }
+                },
+                error: function(err) {
+                    console.error(err);
+                        $('#event_kode').text('Error...');
+                        $('#jam_mulai').text('Error...');
+                        $('#nama_lelang').text('Error...');
+                        $('#jam_selesai').text('Error...');
+                        $('#tanggal').text('Error...');
+                        $('#total_peserta').text('Error...');
+                        $('#lokasi').text('Error...');
+                        $('#total_produk').text('Error...');
+                        $('#ketua_lelang').text('Error...');
+                        $('#status').text('Error...');
+                        $('#total_penjualan_lelang').text('Error...');
+                        $('tbody#peserta_event').children().remove().append('<tr><td colspan="2">Error...</td></tr>')
+                        $('tbody#penjual_event').children().remove().append('<tr><td colspan="3">Error...</td></tr>')
+                        $('tbody#produk_lelang').children().remove().append('<tr><td colspan="7">Error...</td></tr>')
+                }
+            });
+        })
     }
     if (routeName == 'jabatan.index') {
         $('.table-jabatan').DataTable({
@@ -256,6 +938,15 @@ $(function () {
             ]
         });
     }
+    if (routeName == 'home.profil.password') {
+        $('.password').on('click', function (e) {
+            if($(this).parent().siblings().attr('type') == 'password'){
+                $(this).parent().siblings().attr('type', 'text');
+            } else {
+                $(this).parent().siblings().attr('type', 'password');
+            }
+        });
+    }
     if(routeName == 'home.profil.rekening_bank.create' || routeName == 'home.profil.rekening_bank.edit') {
         $("select#bank_id").select2({
             tags: true
@@ -314,6 +1005,22 @@ $(function () {
                 {data: 'jenis', name: 'jenis'},
                 {data: 'jumlah', name: 'jumlah'},
                 {data: 'status', name: 'status'},
+            ]
+        });
+    }
+    if(routeName == 'master.anggota.kpb') {
+        $('.table-anggota-kpb').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'nik', name: 'nik'},
+                {data: 'nama', name: 'nama'},
+                {data: 'status', name: 'status'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
             ]
         });
     }
@@ -3058,6 +3765,37 @@ $(function () {
                 {data: 'nik', name: 'nik'},
                 {data: 'nama', name: 'nama'},
                 {data: 'is_aktif', name: 'is_aktif'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'konfigurasi.dinas') {
+        $('.table-dinas').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'nik', name: 'nik'},
+                {data: 'nama', name: 'nama'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    }
+    if (routeName == 'konfigurasi.dinas.create') {
+        $('.table-member-aktif').DataTable({
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json",
+            },
+            processing: true,
+            serverSide: true,
+            ajax: document.location.href,
+            columns: [
+                {data: 'member_id', name: 'member_id'},
+                {data: 'nik', name: 'nik'},
+                {data: 'nama', name: 'nama'},
                 {data: 'action', name: 'action', orderable: false, searchable: false},
             ]
         });

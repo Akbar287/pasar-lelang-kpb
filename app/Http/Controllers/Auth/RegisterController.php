@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\InformasiAkun;
+use App\Models\Role;
 use App\Models\StatusMember;
 use App\Providers\RouteServiceProvider;
 use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -84,6 +86,9 @@ class RegisterController extends Controller
         $member = $informasi_akun->member()->create([
             'status_member_id' => $statusMember->status_member_id
         ]);
+
+        $role = Role::where('nama_role', 'ROLE_PEMBELI')->first();
+        DB::table('role_member')->insert(['role_id' => $role->role_id, 'member_id' => $member->member_id]);
 
         $member->ktp()->create([
             'nik' => $data['ktp'],

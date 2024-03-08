@@ -65,7 +65,12 @@
                                             </div>
                                             @endif
                                         </div>
-                                        <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" tabindex="2" autocomplete="current-password">
+                                        <div class="input-group">
+                                            <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" tabindex="2" autocomplete="current-password">
+                                            <div class="input-group-append">
+                                                <button class="btn btn-primary" id="see_password" type="button"><i class="fas fa fa-eye"></i></button>
+                                            </div>
+                                        </div>
                                         @error('password')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>

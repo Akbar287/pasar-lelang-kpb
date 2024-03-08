@@ -14,6 +14,12 @@ class AnggotaPasarLelangController extends Controller
     {
         $allMenu = [
             [
+                "nama" => "Lihat Anggota KPB",
+                "icon" => "user-plus",
+                "url" => route('master.anggota.kpb'),
+                "color" => "warning"
+            ],
+            [
                 "nama" => "Calon Anggota",
                 "icon" => "user-plus",
                 "url" => route('master.anggota.calon'),

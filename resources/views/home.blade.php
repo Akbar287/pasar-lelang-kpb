@@ -69,6 +69,7 @@
     @endif
 
     @if(is_null(Auth::user()->informasi_akun()->first()->member()->first()->admin()->first()))
+        @if(Auth::user()->informasi_akun()->first()->member()->first()->role()->where('nama_role', 'ROLE_DINAS')->count() == 0)
         <div class="row justify-content-center">
             <div class="col-lg-3 col-md-3 col-sm-12">
                 <div class="card card-statistic-1">
@@ -131,6 +132,178 @@
                 </div>
             </div>
         </div>
+        @else
+        {{-- Start Dinas  --}}
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-6 col-sm-12">
+                <div class="card card-statistic-1">
+                    <div class="card-icon shadow-primary bg-info">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="card-wrap">
+                        <div class="card-header">
+                            <h4>Total Anggota</h4>
+                        </div>
+                        <div class="card-body">
+                            {{$data['anggota']}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 col-sm-12">
+                <div class="card card-statistic-1">
+                    <div class="card-icon shadow-primary bg-primary">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="card-wrap">
+                        <div class="card-header">
+                            <h4>Produk Lelang</h4>
+                        </div>
+                        <div class="card-body">
+                            {{$data['produk']}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 col-sm-12">
+                <div class="card card-statistic-1">
+                    <div class="card-icon shadow-primary bg-danger">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="card-wrap">
+                        <div class="card-header">
+                            <h4>Jaminan (Tahun {{ now()->year }})</h4>
+                        </div>
+                        <div class="card-body">
+                            Rp. {{ number_format($data['jaminan'], 0, ".", ",") }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 col-sm-12">
+                <div class="card card-statistic-1">
+                    <div class="card-icon shadow-primary bg-warning">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="card-wrap">
+                        <div class="card-header">
+                            <h4>Transaksi (Tahun {{ now()->year }})</h4>
+                        </div>
+                        <div class="card-body">
+                            Rp. {{ number_format($data['transaksi'], 0, ".", ",") }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- MainMenu  --}}
+        <div class="row mb-2 display-all main-menu-view">
+            <div class="col-sm-12 col-md-6">
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h4>Ringkasan Berdasarkan Status Member</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-anggota">
+                                <thead>
+                                    <th>Nama Status</th>
+                                    <th>Jumlah Member</th>
+                                </thead>
+                                <tbody>
+                                    @foreach($data['summary_anggota'] as $ra)
+                                    <tr>
+                                        <td>{{ $ra->nama_status }}</td>
+                                        <td>{{ $ra->member()->count() }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-12 col-md-6">
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h4>Ringkasan Berdasarkan Role</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-anggota">
+                                <thead>
+                                    <th>Nama Role</th>
+                                    <th>Jumlah Member</th>
+                                </thead>
+                                <tbody>
+                                    @foreach($data['role_anggota'] as $ra)
+                                    <tr>
+                                        <td>{{ str_replace('_', ' ', $ra->nama_role) }}</td>
+                                        <td>{{ $ra->member()->count() }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-2 display-all main-menu-view">
+            <div class="col-sm-12 col-md-6">
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h4>Grafik Sebaran Saldo Jaminan</h4>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="chart_summary_jaminan_main" height="250" style="display: block; width: 461px; height: 279px;" width="461" class="chartjs-render-monitor"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-12 col-md-6">
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h4>Summary Sebaran</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-anggota">
+                                <thead>
+                                    <th>Nama</th>
+                                    <th>Jumlah Saldo</th>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th>Saldo Teralokasi</th>
+                                        <td id="saldo_teralokasi"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Saldo Tersedia (Bebas)</th>
+                                        <td id="saldo_tersedia"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-2 display-all main-menu-view">
+            <div class="col-sm-12 col-md-12">
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h4>Kontrak Berdasarkan Komoditas</h4>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="chart_komoditas_jaminan_main" height="250" style="display: block; width: 461px; height: 279px;" width="461" class="chartjs-render-monitor"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{-- End MainMenu  --}}
+        {{-- End Dinas  --}}
+        @endif
         @if(is_null(Auth::user()->informasi_akun()->first()->member()->first()->informasi_keuangan()->first()) || is_null(Auth::user()->informasi_akun()->first()->area_member()->first()) || is_null(Auth::user()->informasi_akun()->first()->dokumen_member()->first()) || is_null(Auth::user()->informasi_akun()->first()->rekening_bank()->first()))
         <div class="row justify-content-center">
             <div class="col-12">
@@ -205,10 +378,6 @@
             </div>
         </div>
 @endif
-
-
-
-
 
 @if(is_null(Auth::user()->operator_pasar_lelang()->first()))
     @if(is_null(Auth::user()->informasi_akun()->first()->member()->first()->admin()->first()))
