@@ -139,11 +139,9 @@ class OperationalTransaksiLelangController extends Controller
 
         // Status Penyelesaian
         $jatuhTempo = $jatuhTempo->addDays($lelang->kontrak()->first()->jatuh_tempo_t_plus)->translatedFormat('d F Y');
-        if ($isJatuhTempo) {
-            $statusPenyelesaian = StatusPenyelesaian::where('nama_jenis', '!=', 'Transaksi Pending')->where('nama_jenis', '!=', 'Transaksi Berhasil')->get();
-        } else {
-            $statusPenyelesaian = StatusPenyelesaian::where('nama_jenis', '!=', 'Transaksi Pending')->get();
-        }
+
+        $statusPenyelesaian = StatusPenyelesaian::where('nama_jenis', '!=', 'Transaksi Pending')->get();
+
 
         // Generate Faktur
         $faktur = [

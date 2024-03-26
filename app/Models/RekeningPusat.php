@@ -25,6 +25,7 @@ class RekeningPusat extends Model
     protected $fillable = [
         'bank_id',
         'nomor_rekening',
+        'nama_pemilik',
         'cabang',
         'mata_uang',
         'saldo',

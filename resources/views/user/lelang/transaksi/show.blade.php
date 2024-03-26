@@ -329,6 +329,7 @@
                                 </div>
                             </div>
 
+                            <div class="row mb-3 justify-content-center">
                                 <div class="col-md-12">
                                     <div class="section-title mt-0">Penerimaan Pembayaran</div>
 
@@ -347,20 +348,21 @@
                                             @enderror
                                         </div>
                                     </div>
+                                </div>
+                            </div>
 
-                                    <div class="row mb-3 justify-content-center">
-                                        <label for="status_pembayaran_penjual" class="col-md-4 col-form-label text-md-end">{{ __('Status Pemilihan Rekening')
-                                            }}</label>
+                                <div class="row mb-3 justify-content-center">
+                                    <label for="status_pembayaran_penjual" class="col-md-4 col-form-label text-md-end">{{ __('Status Pemilihan Rekening')
+                                        }}</label>
 
-                                        <div class="col-md-6">
-                                            <div class="input-group mb-3">
-                                                <div class="input-group-prepend">
-                                                    <span class="input-group-text"><i class="fas fa fa-info"></i></span>
-                                                </div>
-                                                <input id="status_pembayaran_penjual" type="text" readonly
-                                                    class="form-control  @error('status_pembayaran_penjual') is-invalid @enderror" name="status_pembayaran_penjual" value="{{ !is_null($approval_lelang) ? $approval_lelang->pembayaran_lelang()->first()->keuangan_keluar()->first()->status : 'Belum Selesai' }}" />
-                                                <span class="text-muted">Status akan berubah menjadi selesai ketika saldo pembayaran sudah masuk ke rekening penjual</span>
+                                    <div class="col-md-6">
+                                        <div class="input-group mb-3">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fas fa fa-info"></i></span>
                                             </div>
+                                            <input id="status_pembayaran_penjual" type="text" readonly
+                                                class="form-control  @error('status_pembayaran_penjual') is-invalid @enderror" name="status_pembayaran_penjual" value="{{ !is_null($approval_lelang) ? $approval_lelang->pembayaran_lelang()->first()->keuangan_keluar()->first()->status : 'Belum Selesai' }}" />
+                                            <span class="text-muted">Status akan berubah menjadi selesai ketika saldo pembayaran sudah masuk ke rekening penjual</span>
                                         </div>
                                     </div>
                                 </div>
@@ -801,12 +803,23 @@
             @endif
             @endif
 
+            @if(is_null($approval_lelang))
+            <div class="card">
+                <div class="card-header">
+                    <h4>{{ __('Progress Status') }}</h4>
+                </div>
+                <div class="card-body">
+                    <p>Tunggu Admin Lelang Mengonfirmasi transaksi lelang</p>
+                </div>
+            </div>
+            @else
             <div class="card">
                 <div class="card-header">
                     <h4>{{ __('Progress Status') }}</h4>
                 </div>
                 <div class="card-body">
                     <div class="activities">
+                        @if(!is_null($approval_lelang->pembayaran_lelang()->first()))
                         <div class="activity">
                             <div class="activity-icon @if($approval_lelang->pembayaran_lelang()->first()->keuangan_keluar()->first()->status == 'Selesai') bg-primary @else bg-secondary @endif text-white shadow-primary">
                                 <i class="fas fa-check"></i>
@@ -859,9 +872,25 @@
                                 <p>Pembayaran telah diterima dari Pembli melalui Saldo Penyelenggara</p>
                             </div>
                         </div>
+                        @else
+                        <div class="activity">
+                            <div class="activity-icon bg-secondary text-white shadow-primary">
+                                <i class="fas fa-info"></i>
+                            </div>
+                            <div class="activity-detail">
+                                <div class="mb-2">
+                                    <span class="text-job">Menunggu Penyelenggara memverifikasi lelang</span>
+                                    <span class="bullet"></span>
+                                    <a class="text-job" href="#">27 Januari 2023</a>
+                                </div>
+                                <p>Tunggu hingga penyelenggara memverifikasi lelang.</p>
+                            </div>
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
+            @endif
 
             <div class="card">
                 <div class="card-header">

@@ -10,6 +10,7 @@ use App\Models\Keuangan;
 use App\Models\KursMataUang;
 use App\Models\PengeluaranJaminan;
 use App\Models\RekeningBank;
+use App\Models\RekeningPusat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\DataTables;
@@ -46,7 +47,8 @@ class SaldoController extends Controller
         foreach (Auth::user()->informasi_akun()->first()->rekening_bank()->get() as $rb) {
             $saldo += $rb->saldo;
         }
-        return view('saldo/rincian/deposit', compact('saldo'));
+        $rekeningPusat = RekeningPusat::where('status', true)->where('aktif', true)->get();
+        return view('saldo/rincian/deposit', compact('saldo', 'rekeningPusat'));
     }
     public function deposit_store(Request $request)
     {

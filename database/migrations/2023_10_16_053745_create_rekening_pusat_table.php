@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('rekening_pusat_id')->primary();
             $table->uuid('bank_id');
             $table->string('nomor_rekening', 32);
+            $table->string('nama_pemilik', 64);
             $table->string('cabang', 32);
             $table->string('mata_uang', 8);
             $table->decimal('saldo', 19, 2);

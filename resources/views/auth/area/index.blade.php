@@ -43,6 +43,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <a href="{{ route('home.profil') }}" class="btn btn-primary">Kembali</a>
                 </div>
             </div>
         </div>

@@ -143,6 +143,32 @@
                 </div>
             </div>
         </div>
+        <div class="col-12 col-sm-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4>{{ __('Informasi Rekening Tujuan') }}</h4>
+                </div>
+                <div class="card-body">
+                    @if($rekeningPusat->count() > 0)
+                    <table class="table table-hover table-stripped">
+                        <thead>
+                            <th>Nama Bank</th>
+                            <th>Rekening Bank</th>
+                            <th>Nama Pemilik</th>
+                        </thead>
+                        <tbody>
+                            @foreach($rekeningPusat as $rp)
+                            <td>{{ $rp->bank()->first()->nama_bank }}</td>
+                            <td>{{ $rp->nomor_rekening }}</td>
+                            <td>{{ $rp->nama_pemilik }}</td>
+                            @endforeach
+                        </tbody>
+                    </table>
+                    @else
+                    @endif
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 @endsection

@@ -11,7 +11,7 @@
     </div>
 </div>
 <div class="section-body">
-    <h2 class="section-title">Detail Detail Verifikasi Transaksi Lelang</h2>
+    <h2 class="section-title">Detail Verifikasi Transaksi Lelang</h2>
     <p class="section-lead">
         Detail data Detail Verifikasi Transaksi Lelang anda.
     </p>
